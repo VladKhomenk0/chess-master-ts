@@ -1,0 +1,24 @@
+{
+  "name": "chess-master-ts",
+  "version": "1.0.0",
+  "description": "Final project: A feature-rich Chess game built with TypeScript, focusing on clean code, design patterns, and software architecture principles.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artemmylostyvyi/chess-master-ts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/artemmylostyvyi/chess-master-ts/issues"
+  },
+  "homepage": "https://github.com/artemmylostyvyi/chess-master-ts#readme",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
