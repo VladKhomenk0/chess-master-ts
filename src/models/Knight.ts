@@ -1,7 +1,9 @@
 import {Piece} from "./Piece.js";
+import { KnightMoveStrategy } from "./strategies/KnightMoveStrategy.js";
+import {Color} from "./types.js";
 
 export class Knight extends Piece{
-    public canMove(): boolean {
-        return true;
+    constructor(position: {x: number, y: number}, color: Color) {
+        super(position, color, new KnightMoveStrategy());
     }
 }
