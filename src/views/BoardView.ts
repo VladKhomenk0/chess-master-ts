@@ -3,9 +3,11 @@ import {Board} from "../models/Board.js";
 export class BoardView {
     private board: Board;
     private container: HTMLElement;
+    private selectedCell: { x: number; y: number } | null;
 
     constructor(board: Board) {
         this.board = board;
+        this.selectedCell = null;
         const container = document.getElementById("board");
 
         if (!container) {
@@ -14,6 +16,7 @@ export class BoardView {
         this.container = container;
         this.render();
         this.initEventListeners();
+
     }
 
     render(){
@@ -55,14 +58,22 @@ export class BoardView {
 
             const clickedPiece = this.board.cells[y]![x];
 
-            const previouslySelected = this.container.querySelector('.cell.selected');
-            if (previouslySelected) {
-                previouslySelected.classList.remove('selected');
-            }
+            if (this.selectedCell) {
+                this.board.movePiece(this.selectedCell.x, this.selectedCell.y, x, y);
+                this.selectedCell = null;
+                this.render();
 
-            if(clickedPiece !== null) {
-                cell.classList.add("selected");
-                console.log("clickedPiece", clickedPiece);
+            } else {
+                if (clickedPiece) {
+                    this.selectedCell = {x: x, y: y};
+
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
+
+                    cell.classList.add('selected');
+                }
             }
 
         });
