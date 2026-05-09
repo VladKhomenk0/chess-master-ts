@@ -59,19 +59,33 @@ export class BoardView {
             const clickedPiece = this.board.cells[y]![x];
 
             if (this.selectedCell) {
+                const pieceInHand = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
+
+                if (clickedPiece && pieceInHand && clickedPiece.color === pieceInHand.color) {
+
+                    this.selectedCell = { x: x, y: y };
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
+
+                    cell.classList.add('selected');
+
+                    return;
+                }
                 this.board.movePiece(this.selectedCell.x, this.selectedCell.y, x, y);
                 this.selectedCell = null;
                 this.render();
 
             } else {
                 if (clickedPiece) {
+
                     this.selectedCell = {x: x, y: y};
 
                     const previouslySelected = this.container.querySelector('.cell.selected');
                     if (previouslySelected) {
                         previouslySelected.classList.remove('selected');
                     }
-
                     cell.classList.add('selected');
                 }
             }
