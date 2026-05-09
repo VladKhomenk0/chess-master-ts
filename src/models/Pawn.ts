@@ -1,5 +1,7 @@
 import {Piece} from "./Piece.js";
 
 export class Pawn extends Piece{
-
+    public canMove(): boolean {
+        return true;
+    }
 }

@@ -31,7 +31,7 @@ export class BoardView {
 
                 if (piece) {
                     const img = document.createElement("img");
-                    img.src = `/assets/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
+                    img.src = `/assets/images/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
 
                     cellElement.appendChild(img); } this.container.appendChild(cellElement);
             }
