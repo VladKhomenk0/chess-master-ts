@@ -13,6 +13,7 @@ export class BoardView {
         }
         this.container = container;
         this.render();
+        this.initEventListeners();
     }
 
     render(){
@@ -22,8 +23,11 @@ export class BoardView {
             for (let x = 0; x < 8; x++) {
 
                 let cellElement = document.createElement("div");
-                cellElement.classList.add("cell");
 
+                cellElement.setAttribute("data-x", x.toString());
+                cellElement.setAttribute("data-y", y.toString());
+
+                cellElement.classList.add("cell");
                 const isBlack = (x + y) % 2 === 1;
                 cellElement.classList.add(isBlack ? "black" : "white");
 
@@ -36,5 +40,31 @@ export class BoardView {
                     cellElement.appendChild(img); } this.container.appendChild(cellElement);
             }
         }
+    }
+
+    initEventListeners() {
+        this.container.addEventListener("click", (event) => {
+            const target = event.target as HTMLElement;
+
+            const cell = target.closest('.cell') as HTMLElement;
+
+            if (!cell) return;
+
+            const x = Number(cell.getAttribute("data-x"));
+            const y = Number(cell.getAttribute("data-y"));
+
+            const clickedPiece = this.board.cells[y]![x];
+
+            const previouslySelected = this.container.querySelector('.cell.selected');
+            if (previouslySelected) {
+                previouslySelected.classList.remove('selected');
+            }
+
+            if(clickedPiece !== null) {
+                cell.classList.add("selected");
+                console.log("clickedPiece", clickedPiece);
+            }
+
+        });
     }
 }
