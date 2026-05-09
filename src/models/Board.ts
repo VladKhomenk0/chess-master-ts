@@ -79,4 +79,13 @@ export class Board{
         this.cells[7]![3] = new Queen( {x: 3, y: 7}, Color.White);
     }
 
+    public movePiece(startX: number, startY: number, endX: number, endY: number) : void {
+         const piece = this.cells[startY]![startX];
+
+         if (piece) {
+             this.cells[endY]![endX] = piece;
+             this.cells[startY]![startX] = null;
+         }
+    }
+
 }

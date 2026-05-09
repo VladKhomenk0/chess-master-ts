@@ -36,3 +36,10 @@
     user-select: none;
     pointer-events: none;
 }
+
+.cell.selected {
+    background-color: rgba(144, 238, 144, 0.8); /* Світло-зелений */
+    box-sizing: border-box;
+    border: 4px solid limegreen;
+
+}
