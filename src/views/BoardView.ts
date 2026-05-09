@@ -11,6 +11,30 @@ export class BoardView {
         if (!container) {
             throw new Error("Container element not found");
         }
-        this.container = container; }
+        this.container = container;
+        this.render();
+    }
 
+    render(){
+        this.container.innerHTML = "";
+
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+
+                let cellElement = document.createElement("div");
+                cellElement.classList.add("cell");
+
+                const isBlack = (x + y) % 2 === 1;
+                cellElement.classList.add(isBlack ? "black" : "white");
+
+                const piece = this.board.cells[y]![x];
+
+                if (piece) {
+                    const img = document.createElement("img");
+                    img.src = `/assets/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
+
+                    cellElement.appendChild(img); } this.container.appendChild(cellElement);
+            }
+        }
+    }
 }
