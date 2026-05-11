@@ -74,6 +74,7 @@ export class BoardView {
                     return;
                 }
 
+                // Need to fix magical numbers
                 if (pieceInHand?.canMove({x: x, y: y}, {x: this.selectedCell.x, y: this.selectedCell.y}, this.board)) {
                     this.board.movePiece(this.selectedCell.x, this.selectedCell.y, x, y);
                     this.selectedCell = null;
