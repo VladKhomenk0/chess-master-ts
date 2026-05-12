@@ -85,6 +85,8 @@ export class Board{
          if (piece) {
              this.cells[endY]![endX] = piece;
              this.cells[startY]![startX] = null;
+
+             if(piece.isFirstMove) piece.isFirstMove = false;
          }
     }
 

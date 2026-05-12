@@ -1,4 +1,5 @@
 import { Board } from "../Board.js";
+import { Piece } from "../Piece.js";
 
 export interface MoveStrategy {
     /**
@@ -9,7 +10,8 @@ export interface MoveStrategy {
         startY: number,
         endX: number,
         endY: number,
-        board: Board
+        board: Board,
+        piece: Piece
     ): boolean;
 }
 

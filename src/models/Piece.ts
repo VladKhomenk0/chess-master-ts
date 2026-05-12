@@ -6,6 +6,7 @@ export abstract class Piece {
     public position: Position;
     public color: Color;
     protected strategy: MoveStrategy;
+    public isFirstMove: boolean = true;
 
     constructor(position: Position, color: Color, strategy: MoveStrategy) {
         this.position = position;
@@ -14,6 +15,6 @@ export abstract class Piece {
     }
 
     public canMove(targetPosition: Position, currentPosition: Position, board: Board) : boolean {
-        return this.strategy.canMove(currentPosition.x, currentPosition.y, targetPosition.x, targetPosition.y, board);
+        return this.strategy.canMove(currentPosition.x, currentPosition.y, targetPosition.x, targetPosition.y, board, this);
     };
 }
