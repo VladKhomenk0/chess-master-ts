@@ -1,7 +1,9 @@
 import {Piece} from "./Piece.js";
+import {Color} from "./types.js";
+import {RookMoveStrategy} from "./strategies/RookMoveStrategy.js";
 
 export class Rook extends Piece{
-    public canMove(): boolean {
-        return true;
+    constructor(position: {x: number, y: number}, color: Color) {
+        super(position, color, new RookMoveStrategy());
     }
 }
