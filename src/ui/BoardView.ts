@@ -62,7 +62,7 @@ export class BoardView {
             const clickedPiece = this.board.cells[y]![x];
 
             if (this.selectedCell) {
-                // НОВИЙ КОД: Якщо клікнули по тій самій клітинці — знімаємо виділення
+
                 if (this.selectedCell.x === x && this.selectedCell.y === y) {
                     this.selectedCell = null;
                     const previouslySelected = this.container.querySelector('.cell.selected');
@@ -92,7 +92,6 @@ export class BoardView {
                     this.render();
                 } else {
                     console.log("Хід заборонено правилами або зараз не ваш хід!");
-                    // Знімаємо виділення, якщо хід був неправильний (щоб не "залипати")
                     this.selectedCell = null;
                     const previouslySelected = this.container.querySelector('.cell.selected');
                     if (previouslySelected) {

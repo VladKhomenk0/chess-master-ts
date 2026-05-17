@@ -42,6 +42,10 @@ export class GameEngine {
     private executeMove(startX: number, startY: number, endX: number, endY: number): void {
         const piece = this.board.getPiece(startX, startY);
 
+        if (piece) {
+            // Забираємо в фігури прапор першого ходу
+            piece.isFirstMove = false;
+        }
         this.board.cells[endY]![endX] = piece;
         this.board.cells[startY]![startX] = null;
 
