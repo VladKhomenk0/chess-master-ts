@@ -19,10 +19,9 @@ export class BoardView {
         this.container = container;
         this.render();
         this.initEventListeners();
-
     }
 
-    render(){
+    render() {
         this.container.innerHTML = "";
 
         for (let y = 0; y < 8; y++) {
@@ -53,7 +52,6 @@ export class BoardView {
     initEventListeners() {
         this.container.addEventListener("click", (event) => {
             const target = event.target as HTMLElement;
-
             const cell = target.closest('.cell') as HTMLElement;
 
             if (!cell) return;
@@ -64,10 +62,19 @@ export class BoardView {
             const clickedPiece = this.board.cells[y]![x];
 
             if (this.selectedCell) {
+                // НОВИЙ КОД: Якщо клікнули по тій самій клітинці — знімаємо виділення
+                if (this.selectedCell.x === x && this.selectedCell.y === y) {
+                    this.selectedCell = null;
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
+                    return;
+                }
+
                 const pieceInHand = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
 
                 if (clickedPiece && pieceInHand && clickedPiece.color === pieceInHand.color) {
-
                     this.selectedCell = { x: x, y: y };
                     const previouslySelected = this.container.querySelector('.cell.selected');
                     if (previouslySelected) {
@@ -75,7 +82,6 @@ export class BoardView {
                     }
 
                     cell.classList.add('selected');
-
                     return;
                 }
 
@@ -86,11 +92,16 @@ export class BoardView {
                     this.render();
                 } else {
                     console.log("Хід заборонено правилами або зараз не ваш хід!");
+                    // Знімаємо виділення, якщо хід був неправильний (щоб не "залипати")
+                    this.selectedCell = null;
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
                 }
 
             } else {
                 if (clickedPiece) {
-
                     this.selectedCell = {x: x, y: y};
 
                     const previouslySelected = this.container.querySelector('.cell.selected');
@@ -100,7 +111,6 @@ export class BoardView {
                     cell.classList.add('selected');
                 }
             }
-
         });
     }
 }
