@@ -36,16 +36,16 @@ export class Board{
         this.addBishop();
         this.addKing();
         this.addQueen();
-     }
+     };
 
      private addPawn(){
         for (let i = 0; i < 8; i++) {
             this.cells[1]![i] = new Pawn( {x: i, y: 1}, Color.Black);
             this.cells[6]![i] = new Pawn( {x: i, y: 6}, Color.White);
         }
-     }
+     };
 
-    private addRook(){
+     private addRook(){
          this.cells[0]![0] = new Rook( {x: 0, y: 0}, Color.Black);
          this.cells[0]![7] = new Rook( {x: 7, y: 0}, Color.Black);
 
@@ -53,7 +53,7 @@ export class Board{
          this.cells[7]![7] = new Rook( {x: 7, y: 7}, Color.White);
     }
 
-    private addKnight(){
+     private addKnight(){
          this.cells[0]![1] = new Knight( {x: 1, y: 0}, Color.Black);
          this.cells[0]![6] = new Knight( {x: 6, y: 0}, Color.Black);
 
@@ -61,7 +61,7 @@ export class Board{
         this.cells[7]![6] = new Knight( {x: 6, y: 7}, Color.White);
     }
 
-    private addBishop(){
+     private addBishop(){
         this.cells[0]![2] = new Bishop( {x: 2, y: 0}, Color.Black);
         this.cells[0]![5] = new Bishop( {x: 5, y: 0}, Color.Black);
 
@@ -69,17 +69,17 @@ export class Board{
         this.cells[7]![5] = new Bishop( {x: 5, y: 7}, Color.White);
     }
 
-    private addKing(){
+     private addKing(){
         this.cells[0]![4] = new King( {x: 4, y: 0}, Color.Black);
         this.cells[7]![4] = new King( {x: 4, y: 7}, Color.White);
     }
 
-    private addQueen(){
+     private addQueen(){
         this.cells[0]![3] = new Queen( {x: 3, y: 0}, Color.Black);
         this.cells[7]![3] = new Queen( {x: 3, y: 7}, Color.White);
     }
 
-    public movePiece(startX: number, startY: number, endX: number, endY: number) : void {
+     public movePiece(startX: number, startY: number, endX: number, endY: number) : void {
          const piece = this.cells[startY]![startX];
 
          if (piece) {
@@ -90,7 +90,7 @@ export class Board{
          }
     }
 
-    public getPiece(x: number, y: number): Piece | null {
+     public getPiece(x: number, y: number): Piece | null {
         return this.cells[y]![x] ?? null;
     }
 
