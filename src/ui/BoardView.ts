@@ -1,12 +1,15 @@
 import {Board} from "../models/Board.js";
+import { type GameEngine } from "../core/GameEngine.js";
 
 export class BoardView {
+    private game: GameEngine;
     private board: Board;
     private container: HTMLElement;
     private selectedCell: { x: number; y: number } | null;
 
-    constructor(board: Board) {
-        this.board = board;
+    constructor(game: GameEngine) {
+        this.game = game;
+        this.board = game.board;
         this.selectedCell = null;
         const container = document.getElementById("board");
 
@@ -16,10 +19,9 @@ export class BoardView {
         this.container = container;
         this.render();
         this.initEventListeners();
-
     }
 
-    render(){
+    render() {
         this.container.innerHTML = "";
 
         for (let y = 0; y < 8; y++) {
@@ -50,7 +52,6 @@ export class BoardView {
     initEventListeners() {
         this.container.addEventListener("click", (event) => {
             const target = event.target as HTMLElement;
-
             const cell = target.closest('.cell') as HTMLElement;
 
             if (!cell) return;
@@ -61,10 +62,19 @@ export class BoardView {
             const clickedPiece = this.board.cells[y]![x];
 
             if (this.selectedCell) {
+
+                if (this.selectedCell.x === x && this.selectedCell.y === y) {
+                    this.selectedCell = null;
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
+                    return;
+                }
+
                 const pieceInHand = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
 
                 if (clickedPiece && pieceInHand && clickedPiece.color === pieceInHand.color) {
-
                     this.selectedCell = { x: x, y: y };
                     const previouslySelected = this.container.querySelector('.cell.selected');
                     if (previouslySelected) {
@@ -72,22 +82,25 @@ export class BoardView {
                     }
 
                     cell.classList.add('selected');
-
                     return;
                 }
 
-                // Need to fix magical numbers
-                if (pieceInHand?.canMove({x: x, y: y}, {x: this.selectedCell.x, y: this.selectedCell.y}, this.board)) {
-                    this.board.movePiece(this.selectedCell.x, this.selectedCell.y, x, y);
+                const moveSuccessful = this.game.processMove(this.selectedCell.x, this.selectedCell.y, x, y);
+
+                if (moveSuccessful) {
                     this.selectedCell = null;
                     this.render();
                 } else {
-                    console.log("Хід заборонено правилами!");
+                    console.log("Хід заборонено правилами або зараз не ваш хід!");
+                    this.selectedCell = null;
+                    const previouslySelected = this.container.querySelector('.cell.selected');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected');
+                    }
                 }
 
             } else {
                 if (clickedPiece) {
-
                     this.selectedCell = {x: x, y: y};
 
                     const previouslySelected = this.container.querySelector('.cell.selected');
@@ -97,7 +110,6 @@ export class BoardView {
                     cell.classList.add('selected');
                 }
             }
-
         });
     }
 }

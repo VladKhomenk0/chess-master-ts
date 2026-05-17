@@ -14,7 +14,7 @@ export abstract class Piece {
         this.strategy = strategy;
     }
 
-    public canMove(targetPosition: Position, currentPosition: Position, board: Board) : boolean {
+    public canMove(currentPosition: Position, targetPosition: Position, board: Board) : boolean {
         return this.strategy.canMove(currentPosition.x, currentPosition.y, targetPosition.x, targetPosition.y, board, this);
     };
 }

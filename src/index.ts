@@ -1,9 +1,9 @@
-import {Board} from "./models/Board.js";
-import {BoardView} from "./views/BoardView.js";
+import { Board } from "./models/Board.js";
+import { GameEngine } from "./core/GameEngine.js";
+import { BoardView } from "./ui/BoardView.js";
 
 const board = new Board();
-const boardView = new BoardView(board);
 
-boardView.render();
+const game = new GameEngine(board);
 
-
+const view = new BoardView(game);
