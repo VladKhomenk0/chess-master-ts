@@ -25,7 +25,7 @@ export class GameEngine {
         }
 
         // Чи може фігура теоретично так піти за своїми правилами?
-        if (!piece.canMove(startX, startY, endX, endY, this.board)) {
+        if (!piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
             console.log("Ця фігура так не ходить або шлях заблоковано!");
             return false;
         }
@@ -41,6 +41,9 @@ export class GameEngine {
     // Фізичне переміщення фігури на дошці
     private executeMove(startX: number, startY: number, endX: number, endY: number): void {
         const piece = this.board.getPiece(startX, startY);
+
+        this.board.cells[endY]![endX] = piece;
+        this.board.cells[startY]![startX] = null;
 
         console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
     }
