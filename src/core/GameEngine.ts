@@ -267,4 +267,48 @@ export class GameEngine {
 
         return true;
     }
+
+    public getValidMoves(startX: number, startY: number): {x: number, y: number}[] {
+        const validMoves: {x: number, y: number}[] = [];
+        const piece = this.board.getPiece(startX, startY);
+
+        if (!piece || piece.color !== this.currentPlayer) {
+            return validMoves;
+        }
+
+        for (let endX = 0; endX < 8; endX++) {
+            for (let endY = 0; endY < 8; endY++) {
+                if (startX === endX && startY === endY) continue;
+
+                if (piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
+
+                    const targetPiece = this.board.cells[endY]![endX] ?? null;
+                    this.board.cells[endY]![endX] = piece;
+                    this.board.cells[startY]![startX] = null;
+
+                    const originalX = (piece as any).x;
+                    const originalY = (piece as any).y;
+                    if (originalX !== undefined && originalY !== undefined) {
+                        (piece as any).x = endX;
+                        (piece as any).y = endY;
+                    }
+
+                    const isSelfCheck = this.isCheck(this.currentPlayer);
+
+                    this.board.cells[startY]![startX] = piece;
+                    this.board.cells[endY]![endX] = targetPiece;
+
+                    if (originalX !== undefined && originalY !== undefined) {
+                        (piece as any).x = originalX;
+                        (piece as any).y = originalY;
+                    }
+
+                    if (!isSelfCheck) {
+                        validMoves.push({x: endX, y: endY});
+                    }
+                }
+            }
+        }
+        return validMoves;
+    }
 }

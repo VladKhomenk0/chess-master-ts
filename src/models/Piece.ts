@@ -15,6 +15,12 @@ export abstract class Piece {
     }
 
     public canMove(currentPosition: Position, targetPosition: Position, board: Board) : boolean {
+
+        const targetPiece = board.cells[targetPosition.y]![targetPosition.x];
+        if (targetPiece && targetPiece.color === this.color) {
+            return false;
+        }
+
         return this.strategy.canMove(currentPosition.x, currentPosition.y, targetPosition.x, targetPosition.y, board, this);
     };
 }
