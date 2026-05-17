@@ -2,6 +2,8 @@ import {Board} from "../models/Board.js";
 import {Color} from "../models/types.js"
 import {King} from "../models/King.js";
 import {Piece} from "../models/Piece.js";
+import {Pawn} from "../models/Pawn.js";
+import {Queen} from "../models/Queen.js";
 
 export class GameEngine {
     public board: Board;
@@ -62,6 +64,8 @@ export class GameEngine {
         }
 
         this.executeMove(startX, startY, endX, endY);
+        this.handleCastling(piece, startX, startY, endX, endY);
+        this.handlePawnPromotion(endX, endY);
         this.switchTurn();
 
         if (this.isCheckmate(this.currentPlayer)) {
@@ -81,14 +85,47 @@ export class GameEngine {
         console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
     }
 
+    private handlePawnPromotion(endX: number, endY: number): void {
+        const movedPiece = this.board.cells[endY]![endX];
+
+        if (movedPiece instanceof Pawn) {
+            if ((movedPiece.color === Color.White && endY === 0) ||
+                (movedPiece.color === Color.Black && endY === 7)) {
+
+                const newQueen = new Queen({x: endX, y: endY}, movedPiece.color);
+
+                if ((newQueen as any).x !== undefined) (newQueen as any).x = endX;
+                if ((newQueen as any).y !== undefined) (newQueen as any).y = endY;
+
+                this.board.cells[endY]![endX] = newQueen;
+                console.log(`Пішак перетворився на Королеву на клітинці (${endX}, ${endY})!`);
+            }
+        }
+    }
+
+    private handleCastling(piece: Piece, startX: number, startY: number, endX: number, endY: number): void {
+        if (piece instanceof King && Math.abs(startX - endX) === 2) {
+
+            if (endX === startX + 2) {
+                this.executeMove(7, startY, startX + 1, startY);
+                console.log("Коротка рокіровка!");
+            }
+
+            if (endX === startX - 2) {
+                this.executeMove(0, startY, startX - 1, startY);
+                console.log("Довга рокіровка!");
+            }
+        }
+    }
+
     public switchTurn(): void {
         this.currentPlayer = this.currentPlayer === Color.White ? Color.Black : Color.White;
         console.log(`Хід передано. Тепер ходять: ${this.currentPlayer}`);
     }
 
     public isCheck(color: Color): boolean {
-        let kingX = 0;
-        let kingY = 0;
+        let kingX = -1;
+        let kingY = -1;
 
         for (let i = 0; i < 8; i++){
             for (let j = 0; j < 8; j++){
@@ -98,6 +135,9 @@ export class GameEngine {
                 }
             }
         }
+
+        if (kingX === -1 || kingY === -1) return true;
+
         for (let i = 0; i < 8; i++){
             for (let j = 0; j < 8; j++){
                 if (this.board.cells[j]![i] instanceof Piece && this.board.cells[j]![i]?.color !== color) {
