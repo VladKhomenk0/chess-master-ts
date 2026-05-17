@@ -1,6 +1,8 @@
 import {Board} from "../models/Board.js";
+import { type GameEngine } from "../core/GameEngine.js";
 
 export class BoardView {
+    private game: GameEngine;
     private board: Board;
     private container: HTMLElement;
     private selectedCell: { x: number; y: number } | null;
@@ -76,13 +78,13 @@ export class BoardView {
                     return;
                 }
 
-                // Need to fix magical numbers
-                if (pieceInHand?.canMove({x: x, y: y}, {x: this.selectedCell.x, y: this.selectedCell.y}, this.board)) {
-                    this.board.movePiece(this.selectedCell.x, this.selectedCell.y, x, y);
+                const moveSuccessful = this.game.processMove(this.selectedCell.x, this.selectedCell.y, x, y);
+
+                if (moveSuccessful) {
                     this.selectedCell = null;
                     this.render();
                 } else {
-                    console.log("Хід заборонено правилами!");
+                    console.log("Хід заборонено правилами або зараз не ваш хід!");
                 }
 
             } else {
