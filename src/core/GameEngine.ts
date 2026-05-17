@@ -9,6 +9,41 @@ export class GameEngine {
         this.board = board;
         this.currentPlayer = "white";
     }
+    public processMove(startX: number, startY: number, endX: number, endY: number): boolean {
+        const piece = this.board.getPiece(startX, startY);
+
+        //  Чи є там взагалі фігура?
+        if (!piece) {
+            console.log("Тут немає фігури!");
+            return false;
+        }
+
+        // Чи ходить зараз цей колір?
+        if (piece.color !== this.currentPlayer) {
+            console.log(`Зараз хід кольору: ${this.currentPlayer}`);
+            return false;
+        }
+
+        // Чи може фігура теоретично так піти за своїми правилами?
+        if (!piece.canMove(startX, startY, endX, endY, this.board)) {
+            console.log("Ця фігура так не ходить або шлях заблоковано!");
+            return false;
+        }
+
+        this.executeMove(startX, startY, endX, endY);
+
+        // Передаємо хід іншому гравцю
+        this.switchTurn();
+
+        return true;
+    }
+
+    // Фізичне переміщення фігури на дошці
+    private executeMove(startX: number, startY: number, endX: number, endY: number): void {
+        const piece = this.board.getPiece(startX, startY);
+
+        console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
+    }
 
     // Допоміжний метод для зміни черги ходу
     public switchTurn(): void {
