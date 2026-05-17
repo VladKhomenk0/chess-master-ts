@@ -40,7 +40,9 @@ export class BoardView {
                     const img = document.createElement("img");
                     img.src = `/assets/images/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
 
-                    cellElement.appendChild(img); } this.container.appendChild(cellElement);
+                    cellElement.appendChild(img);
+                }
+                this.container.appendChild(cellElement);
             }
         }
     }

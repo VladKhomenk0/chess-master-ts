@@ -3,7 +3,7 @@ import {Color} from "../types.js";
 import type {Board} from "../Board.js";
 
 export class KnightMoveStrategy implements MoveStrategy{
-    canMove(startX: number, startY: number, endX: number, endY: number, board: Board): boolean {
+    canMove(startX: number, startY: number, endX: number, endY: number): boolean {
 
         const dx = Math.abs(endX - startX);
         const dy = Math.abs(endY - startY);

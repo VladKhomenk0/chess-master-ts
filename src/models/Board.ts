@@ -90,4 +90,8 @@ export class Board{
          }
     }
 
+    public getPiece(x: number, y: number): Piece | null {
+        return this.cells[y]![x] ?? null;
+    }
+
 }
