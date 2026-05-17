@@ -4,6 +4,9 @@ import {King} from "../models/King.js";
 import {Piece} from "../models/Piece.js";
 import {Pawn} from "../models/Pawn.js";
 import {Queen} from "../models/Queen.js";
+import {Rook} from "../models/Rook.js";
+import {Bishop} from "../models/Bishop.js";
+import {Knight} from "../models/Knight.js";
 
 export class GameEngine {
     public board: Board;
@@ -15,7 +18,7 @@ export class GameEngine {
         this.currentPlayer = Color.White;
     }
 
-    public processMove(startX: number, startY: number, endX: number, endY: number): boolean {
+    public processMove(startX: number, startY: number, endX: number, endY: number, promotionChoice: string = "Queen"): boolean {
         if (this.isGameOver) {
             return false;
         }
@@ -65,7 +68,7 @@ export class GameEngine {
 
         this.executeMove(startX, startY, endX, endY);
         this.handleCastling(piece, startX, startY, endX, endY);
-        this.handlePawnPromotion(endX, endY);
+        this.handlePawnPromotion(endX, endY, promotionChoice);
 
         if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
             this.board.cells[startY]![endX] = null;
@@ -94,20 +97,24 @@ export class GameEngine {
         console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
     }
 
-    private handlePawnPromotion(endX: number, endY: number): void {
-        const movedPiece = this.board.cells[endY]![endX];
+    private handlePawnPromotion(x: number, y: number, promotionChoice: string) {
+        const piece = this.board.cells[y]![x];
+        if (!piece) return;
 
-        if (movedPiece instanceof Pawn) {
-            if ((movedPiece.color === Color.White && endY === 0) ||
-                (movedPiece.color === Color.Black && endY === 7)) {
+        if (piece.constructor.name === "Pawn") {
+            if ((piece.color === "white" && y === 0) || (piece.color === "black" && y === 7)) {
 
-                const newQueen = new Queen({x: endX, y: endY}, movedPiece.color);
+                let newPiece;
+                switch (promotionChoice) {
+                    case "Rook": newPiece = new Rook({x, y}, piece.color); break;
+                    case "Bishop": newPiece = new Bishop({x, y}, piece.color); break;
+                    case "Knight": newPiece = new Knight({x, y}, piece.color); break;
+                    case "Queen":
+                    default:
+                        newPiece = new Queen({x, y}, piece.color); break;
+                }
 
-                if ((newQueen as any).x !== undefined) (newQueen as any).x = endX;
-                if ((newQueen as any).y !== undefined) (newQueen as any).y = endY;
-
-                this.board.cells[endY]![endX] = newQueen;
-                console.log(`Пішак перетворився на Королеву на клітинці (${endX}, ${endY})!`);
+                this.board.cells[y]![x] = newPiece;
             }
         }
     }

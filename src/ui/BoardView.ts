@@ -83,7 +83,7 @@ export class BoardView {
     }
 
     initEventListeners() {
-        this.container.addEventListener("click", (event) => {
+        this.container.addEventListener("click", async (event) => {
             const target = event.target as HTMLElement;
             const cell = target.closest('.cell') as HTMLElement;
 
@@ -107,23 +107,19 @@ export class BoardView {
                     return;
                 }
 
-                const pieceInHand = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
+                const pieceToMove = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
+                let promotionChoice = "Queen";
 
-                if (clickedPiece && pieceInHand && clickedPiece.color === pieceInHand.color) {
-                    this.selectedCell = { x: x, y: y };
+                if (pieceToMove && pieceToMove.constructor.name === "Pawn") {
+                    const isWhitePromotion = pieceToMove.color === "white" && y === 0;
+                    const isBlackPromotion = pieceToMove.color === "black" && y === 7;
 
-                    const previouslySelected = this.container.querySelector('.cell.selected');
-                    if (previouslySelected) {
-                        previouslySelected.classList.remove('selected');
+                    if (isWhitePromotion || isBlackPromotion) {
+                        promotionChoice = await this.askPromotionPiece(pieceToMove.color);
                     }
-                    cell.classList.add('selected');
-
-                    this.clearMoveHints();
-                    this.showMoveHints(x, y);
-                    return;
                 }
 
-                const moveSuccessful = this.game.processMove(this.selectedCell.x, this.selectedCell.y, x, y);
+                const moveSuccessful = this.game.processMove(this.selectedCell.x, this.selectedCell.y, x, y, promotionChoice);
                 if (moveSuccessful) {
                     this.selectedCell = null;
                     this.render();
@@ -160,6 +156,34 @@ export class BoardView {
                     }
                 }
             }
+        });
+    }
+
+    private async askPromotionPiece(color: string): Promise<string> {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("promotion-modal");
+            const optionsContainer = document.getElementById("promotion-options");
+            if (!modal || !optionsContainer) {
+                resolve("Queen");
+                return;
+            }
+
+            optionsContainer.innerHTML = "";
+            const pieces = ["Queen", "Rook", "Bishop", "Knight"];
+
+            pieces.forEach(pieceName => {
+                const img = document.createElement("img");
+                img.src = `/assets/images/${color.toLowerCase()}-${pieceName.toLowerCase()}.png`;
+
+                img.onclick = () => {
+                    modal.classList.add("hidden");
+                    resolve(pieceName);
+                };
+
+                optionsContainer.appendChild(img);
+            });
+
+            modal.classList.remove("hidden");
         });
     }
 }
