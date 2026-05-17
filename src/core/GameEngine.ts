@@ -12,6 +12,7 @@ export class GameEngine {
     public board: Board;
     public currentPlayer: Color;
     public isGameOver: boolean = false;
+    public capturedPieces: any[] = [];
 
     constructor(board: Board) {
         this.board = board;
@@ -40,6 +41,10 @@ export class GameEngine {
         }
 
         const targetPiece = this.board.cells[endY]![endX] ?? null;
+
+        if (targetPiece) {
+            this.capturedPieces.push(targetPiece);
+        }
 
         this.board.cells[endY]![endX] = piece;
         this.board.cells[startY]![startX] = null;
