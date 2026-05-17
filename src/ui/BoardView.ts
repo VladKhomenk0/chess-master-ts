@@ -1,5 +1,6 @@
 import {Board} from "../models/Board.js";
-import { type GameEngine } from "../core/GameEngine.js";
+import {type GameEngine} from "../core/GameEngine.js";
+import {Color} from "../models/types.js";
 
 export class BoardView {
     private game: GameEngine;
@@ -45,6 +46,12 @@ export class BoardView {
                     img.src = `/assets/images/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
 
                     cellElement.appendChild(img);
+
+                    if (piece.constructor.name === "King" && piece.color === this.game.currentPlayer) {
+                        if (this.game.isCheck(this.game.currentPlayer)) {
+                            cellElement.classList.add("in-check");
+                        }
+                    }
                 }
                 this.container.appendChild(cellElement);
             }
@@ -120,6 +127,14 @@ export class BoardView {
                 if (moveSuccessful) {
                     this.selectedCell = null;
                     this.render();
+
+                    setTimeout(() => {
+                        if (this.game.isCheckmate && this.game.isCheckmate(this.game.currentPlayer)) {
+                            const winner = this.game.currentPlayer === Color.White ? "Чорні" : "Білі";
+                            alert(`Шах і мат! Перемогли ${winner}! 🏆`);
+                        }
+                    }, 100);
+
                 } else {
                     console.log("Хід заборонено правилами або зараз не ваш хід!");
                     this.selectedCell = null;

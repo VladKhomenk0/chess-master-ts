@@ -81,11 +81,7 @@ export class GameEngine {
 
         this.switchTurn();
 
-        if (this.isCheckmate(this.currentPlayer)) {
-            this.isGameOver = true;
-            const winner = this.currentPlayer === Color.White ? 'Чорні' : 'Білі';
-            alert(`ШАХ І МАТ! Перемогли ${winner}!`);
-        } else if (this.isStalemate(this.currentPlayer)) {
+        if (this.isStalemate(this.currentPlayer)) {
             this.isGameOver = true;
             alert("ПАТ! Нічия.");
         }
