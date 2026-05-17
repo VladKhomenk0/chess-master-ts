@@ -126,3 +126,76 @@ cell.possible-move::after {
     background-color: rgba(144, 238, 144, 0.4); /* Зеленуватий фон при наведенні */
     border-color: limegreen;
 }
+
+/* Контейнер, який ставить дошку та панель в один ряд */
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin: 20px auto;
+    width: fit-content;
+}
+
+/* Прибираємо margin auto з дошки, бо тепер за центрування відповідає контейнер */
+#board {
+    margin: 0 !important;
+}
+
+/* Стиль інформаційної панелі */
+.scoreboard {
+    width: 240px;
+    background-color: #312e2b; /* Темний шаховий фон */
+    border-radius: 8px;
+    padding: 20px;
+    color: #fff;
+    font-family: sans-serif;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.status-section h3 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+/* Кольори для підсвічування тексту чий хід */
+.turn-white { color: #fff; font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+.turn-black { color: #bababa; font-weight: bold; }
+
+/* Блоки для збитих фігур */
+.captured-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 40px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+/* Маленькі іконки збитих фігур */
+.captured-box img {
+    width: 25px;
+    height: 25px;
+    opacity: 0.7;
+}
+
+/* Кнопка рестарту */
+.restart-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #769656;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 15px;
+}
+
+.restart-button:hover {
+    background-color: #647f49;
+}
