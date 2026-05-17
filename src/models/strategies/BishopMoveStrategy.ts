@@ -9,7 +9,7 @@ export class BishopMoveStrategy implements MoveStrategy{
         const dy = endY - startY;
 
         if (Math.abs(dx) !== Math.abs(dy)) {
-            return false; // Якщо це не діагональ, то далі й рахувати нема чого
+            return false;
         }
 
         const stepX = Math.sign(dx);

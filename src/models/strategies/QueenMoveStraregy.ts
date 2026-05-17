@@ -8,10 +8,10 @@ export class QueenMoveStrategy implements MoveStrategy {
     private rookStrategy = new RookMoveStrategy();
     private bishopStrategy = new BishopMoveStrategy();
 
-    canMove(startX: number, startY: number, endX: number, endY: number, piece: Piece): boolean {
+    canMove(startX: number, startY: number, endX: number, endY: number, board: Board, piece: Piece): boolean {
         return (
-            this.rookStrategy.canMove(startX, startY, endX, endY) ||
-            this.bishopStrategy.canMove(startX, startY, endX, endY)
+            this.rookStrategy.canMove(startX, startY, endX, endY, board) ||
+            this.bishopStrategy.canMove(startX, startY, endX, endY, board)
         );
     }
 }
