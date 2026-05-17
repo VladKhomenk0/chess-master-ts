@@ -4,18 +4,22 @@ import {King} from "../models/King.js";
 import {Piece} from "../models/Piece.js";
 import {Pawn} from "../models/Pawn.js";
 import {Queen} from "../models/Queen.js";
+import {Rook} from "../models/Rook.js";
+import {Bishop} from "../models/Bishop.js";
+import {Knight} from "../models/Knight.js";
 
 export class GameEngine {
     public board: Board;
     public currentPlayer: Color;
     public isGameOver: boolean = false;
+    public capturedPieces: any[] = [];
 
     constructor(board: Board) {
         this.board = board;
         this.currentPlayer = Color.White;
     }
 
-    public processMove(startX: number, startY: number, endX: number, endY: number): boolean {
+    public processMove(startX: number, startY: number, endX: number, endY: number, promotionChoice: string = "Queen"): boolean {
         if (this.isGameOver) {
             return false;
         }
@@ -37,6 +41,10 @@ export class GameEngine {
         }
 
         const targetPiece = this.board.cells[endY]![endX] ?? null;
+
+        if (targetPiece) {
+            this.capturedPieces.push(targetPiece);
+        }
 
         this.board.cells[endY]![endX] = piece;
         this.board.cells[startY]![startX] = null;
@@ -65,14 +73,23 @@ export class GameEngine {
 
         this.executeMove(startX, startY, endX, endY);
         this.handleCastling(piece, startX, startY, endX, endY);
-        this.handlePawnPromotion(endX, endY);
+        this.handlePawnPromotion(endX, endY, promotionChoice);
+
+        if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
+            this.board.cells[startY]![endX] = null;
+            console.log("Взяття на проході (En Passant)!");
+        }
+        this.board.lastMove = {
+            piece: piece,
+            startX: startX,
+            startY: startY,
+            endX: endX,
+            endY: endY
+        };
+
         this.switchTurn();
 
-        if (this.isCheckmate(this.currentPlayer)) {
-            this.isGameOver = true;
-            const winner = this.currentPlayer === Color.White ? 'Чорні' : 'Білі';
-            alert(`ШАХ І МАТ! Перемогли ${winner}!`);
-        } else if (this.isStalemate(this.currentPlayer)) {
+        if (this.isStalemate(this.currentPlayer)) {
             this.isGameOver = true;
             alert("ПАТ! Нічия.");
         }
@@ -85,20 +102,24 @@ export class GameEngine {
         console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
     }
 
-    private handlePawnPromotion(endX: number, endY: number): void {
-        const movedPiece = this.board.cells[endY]![endX];
+    private handlePawnPromotion(x: number, y: number, promotionChoice: string) {
+        const piece = this.board.cells[y]![x];
+        if (!piece) return;
 
-        if (movedPiece instanceof Pawn) {
-            if ((movedPiece.color === Color.White && endY === 0) ||
-                (movedPiece.color === Color.Black && endY === 7)) {
+        if (piece.constructor.name === "Pawn") {
+            if ((piece.color === "white" && y === 0) || (piece.color === "black" && y === 7)) {
 
-                const newQueen = new Queen({x: endX, y: endY}, movedPiece.color);
+                let newPiece;
+                switch (promotionChoice) {
+                    case "Rook": newPiece = new Rook({x, y}, piece.color); break;
+                    case "Bishop": newPiece = new Bishop({x, y}, piece.color); break;
+                    case "Knight": newPiece = new Knight({x, y}, piece.color); break;
+                    case "Queen":
+                    default:
+                        newPiece = new Queen({x, y}, piece.color); break;
+                }
 
-                if ((newQueen as any).x !== undefined) (newQueen as any).x = endX;
-                if ((newQueen as any).y !== undefined) (newQueen as any).y = endY;
-
-                this.board.cells[endY]![endX] = newQueen;
-                console.log(`Пішак перетворився на Королеву на клітинці (${endX}, ${endY})!`);
+                this.board.cells[y]![x] = newPiece;
             }
         }
     }
@@ -253,5 +274,49 @@ export class GameEngine {
         }
 
         return true;
+    }
+
+    public getValidMoves(startX: number, startY: number): {x: number, y: number}[] {
+        const validMoves: {x: number, y: number}[] = [];
+        const piece = this.board.getPiece(startX, startY);
+
+        if (!piece || piece.color !== this.currentPlayer) {
+            return validMoves;
+        }
+
+        for (let endX = 0; endX < 8; endX++) {
+            for (let endY = 0; endY < 8; endY++) {
+                if (startX === endX && startY === endY) continue;
+
+                if (piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
+
+                    const targetPiece = this.board.cells[endY]![endX] ?? null;
+                    this.board.cells[endY]![endX] = piece;
+                    this.board.cells[startY]![startX] = null;
+
+                    const originalX = (piece as any).x;
+                    const originalY = (piece as any).y;
+                    if (originalX !== undefined && originalY !== undefined) {
+                        (piece as any).x = endX;
+                        (piece as any).y = endY;
+                    }
+
+                    const isSelfCheck = this.isCheck(this.currentPlayer);
+
+                    this.board.cells[startY]![startX] = piece;
+                    this.board.cells[endY]![endX] = targetPiece;
+
+                    if (originalX !== undefined && originalY !== undefined) {
+                        (piece as any).x = originalX;
+                        (piece as any).y = originalY;
+                    }
+
+                    if (!isSelfCheck) {
+                        validMoves.push({x: endX, y: endY});
+                    }
+                }
+            }
+        }
+        return validMoves;
     }
 }
