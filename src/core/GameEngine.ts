@@ -64,9 +64,8 @@ export class GameEngine {
         }
 
         this.executeMove(startX, startY, endX, endY);
-
+        this.handleCastling(piece, startX, startY, endX, endY);
         this.handlePawnPromotion(endX, endY);
-
         this.switchTurn();
 
         if (this.isCheckmate(this.currentPlayer)) {
@@ -100,6 +99,21 @@ export class GameEngine {
 
                 this.board.cells[endY]![endX] = newQueen;
                 console.log(`Пішак перетворився на Королеву на клітинці (${endX}, ${endY})!`);
+            }
+        }
+    }
+
+    private handleCastling(piece: Piece, startX: number, startY: number, endX: number, endY: number): void {
+        if (piece instanceof King && Math.abs(startX - endX) === 2) {
+
+            if (endX === startX + 2) {
+                this.executeMove(7, startY, startX + 1, startY);
+                console.log("Коротка рокіровка!");
+            }
+
+            if (endX === startX - 2) {
+                this.executeMove(0, startY, startX - 1, startY);
+                console.log("Довга рокіровка!");
             }
         }
     }
