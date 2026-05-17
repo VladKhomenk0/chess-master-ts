@@ -7,8 +7,9 @@ export class BoardView {
     private container: HTMLElement;
     private selectedCell: { x: number; y: number } | null;
 
-    constructor(board: Board) {
-        this.board = board;
+    constructor(game: GameEngine) {
+        this.game = game;
+        this.board = game.board;
         this.selectedCell = null;
         const container = document.getElementById("board");
 
