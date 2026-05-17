@@ -1,30 +1,43 @@
-import type {MoveStrategy} from "./MoveStrategy.js";
-import {Board} from "../Board.js";
-import type {Piece} from "../Piece.js";
+import type { MoveStrategy } from "./MoveStrategy.js";
+import type { Board } from "../Board.js";
+import type { Piece } from "../Piece.js";
+import { Color } from "../types.js";
 
-export class PawnMoveStrategy implements MoveStrategy{
+export class PawnMoveStrategy implements MoveStrategy {
     canMove(startX: number, startY: number, endX: number, endY: number, board: Board, piece: Piece): boolean {
+        const direction = piece.color === Color.White ? -1 : 1;
 
-        const moveDirection = piece.color === "white" ? -1 : 1;
-
-        const dx = endX - startX;
+        const dx = Math.abs(endX - startX);
         const dy = endY - startY;
 
-        if (dx === 0) {
-            if (dy === moveDirection) {
-                return board.getPiece(endX, endY) === null;
-            }
+        if (dx === 0 && dy === direction && !board.cells[endY]![endX]) {
+            return true;
+        }
 
-            if (piece.isFirstMove && dy === moveDirection * 2) {
-                const intermediateY = startY + moveDirection;
-                return board.getPiece(startX, intermediateY) === null &&
-                    board.getPiece(endX, endY) === null;
+        if (dx === 0 && dy === direction * 2 && piece.isFirstMove) {
+            if (!board.cells[startY + direction]![endX] && !board.cells[endY]![endX]) {
+                return true;
             }
         }
-        if (Math.abs(dx) === 1 && dy === moveDirection) {
-            const targetPiece = board.getPiece(endX, endY);
-            if (targetPiece !== null && targetPiece.color !== piece.color) {
+
+        if (dx === 1 && dy === direction) {
+            const targetPiece = board.cells[endY]![endX];
+            if (targetPiece && targetPiece.color !== piece.color) {
                 return true;
+            }
+
+            if (!targetPiece && board.lastMove) {
+                const { piece: lastPiece, startY: lastStartY, endY: lastEndY, endX: lastEndX } = board.lastMove;
+
+                if (
+                    lastPiece.color !== piece.color &&
+                    lastPiece.constructor.name === "Pawn" &&
+                    Math.abs(lastEndY - lastStartY) === 2 &&
+                    lastEndY === startY &&
+                    lastEndX === endX
+                ) {
+                    return true;
+                }
             }
         }
 

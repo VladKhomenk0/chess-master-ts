@@ -66,6 +66,19 @@ export class GameEngine {
         this.executeMove(startX, startY, endX, endY);
         this.handleCastling(piece, startX, startY, endX, endY);
         this.handlePawnPromotion(endX, endY);
+
+        if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
+            this.board.cells[startY]![endX] = null;
+            console.log("Взяття на проході (En Passant)!");
+        }
+        this.board.lastMove = {
+            piece: piece,
+            startX: startX,
+            startY: startY,
+            endX: endX,
+            endY: endY
+        };
+
         this.switchTurn();
 
         if (this.isCheckmate(this.currentPlayer)) {

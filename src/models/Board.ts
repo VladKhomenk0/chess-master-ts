@@ -10,6 +10,7 @@ import {Color} from "./types.js";
 
 export class Board{
      public cells: (Piece | null)[][];
+     public lastMove: { piece: any, startX: number, startY: number, endX: number, endY: number } | null = null;
 
      constructor() {
          this.cells = this.createEmptyBoard();
