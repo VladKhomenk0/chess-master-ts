@@ -6,6 +6,7 @@ export class ScoreboardView {
     private capturedWhiteContainer: HTMLElement | null;
     private capturedBlackContainer: HTMLElement | null;
     private restartBtn: HTMLElement | null;
+    private movesLogContainer: HTMLElement | null;
 
     constructor(game: GameEngine) {
         this.game = game;
@@ -14,6 +15,7 @@ export class ScoreboardView {
         this.capturedWhiteContainer = document.getElementById("captured-white");
         this.capturedBlackContainer = document.getElementById("captured-black");
         this.restartBtn = document.getElementById("restart-btn");
+        this.movesLogContainer = document.getElementById("moves-log");
 
         this.initEventListeners();
         this.update();
@@ -22,6 +24,7 @@ export class ScoreboardView {
     public update() {
         this.updatePlayerTurn();
         this.updateCapturedPieces();
+        this.updateMoveHistory();
     }
 
     private updatePlayerTurn() {
@@ -56,6 +59,26 @@ export class ScoreboardView {
                 this.capturedBlackContainer?.appendChild(img);
             }
         });
+    }
+    private updateMoveHistory() {
+        if (!this.movesLogContainer) return;
+
+        this.movesLogContainer.innerHTML = "";
+
+        const moveHistoryObj = (this.game as any).moveHistory;
+        if (!moveHistoryObj || typeof moveHistoryObj.getFormattedHistory !== "function") return;
+
+        const historyStrings = moveHistoryObj.getFormattedHistory();
+
+        historyStrings.forEach((moveText: string) => {
+            const moveRow = document.createElement("div");
+            moveRow.className = "move-row";
+            moveRow.textContent = moveText;
+
+            this.movesLogContainer?.appendChild(moveRow);
+        });
+
+        this.movesLogContainer.scrollTop = this.movesLogContainer.scrollHeight;
     }
 
     private initEventListeners() {

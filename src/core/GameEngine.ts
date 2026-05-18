@@ -7,6 +7,7 @@ import {Queen} from "../models/Queen.js";
 import {Rook} from "../models/Rook.js";
 import {Bishop} from "../models/Bishop.js";
 import {Knight} from "../models/Knight.js";
+import { MoveHistory } from "./MoveHistory.js";
 
 export class GameEngine {
     public board: Board;
@@ -18,6 +19,8 @@ export class GameEngine {
         this.board = board;
         this.currentPlayer = Color.White;
     }
+
+    public moveHistory: MoveHistory = new MoveHistory();
 
     public processMove(startX: number, startY: number, endX: number, endY: number, promotionChoice: string = "Queen"): boolean {
         if (this.isGameOver) {
@@ -86,6 +89,9 @@ export class GameEngine {
             endX: endX,
             endY: endY
         };
+
+        const isPromotion = piece.constructor.name === "Pawn" && (endY === 0 || endY === 7);
+        this.moveHistory.addMove(piece, startX, startY, endX, endY, targetPiece, isPromotion);
 
         this.switchTurn();
 

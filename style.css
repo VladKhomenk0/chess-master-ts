@@ -199,3 +199,22 @@ cell.possible-move::after {
 .restart-button:hover {
     background-color: #647f49;
 }
+
+/* Блок історії ходів */
+.history-section h4 {
+    margin-bottom: 5px;
+}
+
+.moves-log {
+    max-height: 120px;
+    overflow-y: auto; /* Додає скролл, якщо ходів багато */
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    color: #f1b351; /* Гарний золотавий колір для тексту ходів */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
