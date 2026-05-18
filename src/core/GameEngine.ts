@@ -1,22 +1,29 @@
-import {Board} from "../models/Board.js";
-import {Color} from "../models/types.js"
-import {King} from "../models/King.js";
-import {Piece} from "../models/Piece.js";
-import {Pawn} from "../models/Pawn.js";
-import {Queen} from "../models/Queen.js";
-import {Rook} from "../models/Rook.js";
-import {Bishop} from "../models/Bishop.js";
-import {Knight} from "../models/Knight.js";
+import { Board } from "../models/Board.js";
+import { Color } from "../models/types.js";
+import { King } from "../models/King.js";
+import { Piece } from "../models/Piece.js";
+import { Pawn } from "../models/Pawn.js";
+import { Queen } from "../models/Queen.js";
+import { Rook } from "../models/Rook.js";
+import { Bishop } from "../models/Bishop.js";
+import { Knight } from "../models/Knight.js";
 import { MoveHistory } from "./MoveHistory.js";
 import { ChessClock } from "./ChessClock.js";
+import { GameAnalytics } from "./GameAnalytics.js";
+import { GameStorage } from "./GameStorage.js";
 
 export class GameEngine {
     public board: Board;
     public currentPlayer: Color;
     public isGameOver: boolean = false;
     public capturedPieces: any[] = [];
+
     public clock!: ChessClock;
     public moveHistory: MoveHistory = new MoveHistory();
+    public analytics: GameAnalytics = new GameAnalytics();
+    public storage: GameStorage = new GameStorage();
+
+    private moveStartTime: number = Date.now();
 
     constructor(board: Board) {
         this.board = board;
@@ -24,31 +31,72 @@ export class GameEngine {
     }
 
     public processMove(startX: number, startY: number, endX: number, endY: number, promotionChoice: string = "Queen"): boolean {
-        if (this.isGameOver) {
-            return false;
-        }
+        if (this.isGameOver) return false;
 
         const piece = this.board.getPiece(startX, startY);
+        if (!piece || piece.color !== this.currentPlayer) return false;
 
-        if (!piece) {
-            console.log("Тут немає фігури!");
-            return false;
-        }
-        if (piece.color !== this.currentPlayer) {
-            console.log(`Зараз хід кольору: ${this.currentPlayer}`);
-            return false;
-        }
+        if (!piece.canMove({ x: startX, y: startY }, { x: endX, y: endY }, this.board)) return false;
 
-        if (!piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
-            console.log("Ця фігура так не ходить або шлях заблоковано!");
+        if (this.wouldLeaveKingInCheck(piece, startX, startY, endX, endY)) {
+            console.log("Неможливо зробити хід: король під шахом!");
             return false;
         }
 
+        this.executeMoveLifecycle(piece, startX, startY, endX, endY, promotionChoice);
+        this.handlePostMoveChecks();
+
+        return true;
+    }
+
+    private executeMoveLifecycle(piece: Piece, startX: number, startY: number, endX: number, endY: number, promotionChoice: string): void {
         const targetPiece = this.board.cells[endY]![endX] ?? null;
-
         if (targetPiece) {
             this.capturedPieces.push(targetPiece);
         }
+
+        this.executeMove(startX, startY, endX, endY);
+        this.handleCastling(piece, startX, startY, endX, endY);
+        this.handlePawnPromotion(endX, endY, promotionChoice);
+        this.handleEnPassant(piece, startX, startY, endX, targetPiece);
+
+        this.board.lastMove = { piece, startX, startY, endX, endY };
+
+        const isPromotion = piece.constructor.name === "Pawn" && (endY === 0 || endY === 7);
+        this.moveHistory.addMove(piece, startX, startY, endX, endY, targetPiece, isPromotion);
+
+        this.trackAnalyticsData(piece);
+        this.switchTurn();
+        this.updateClockSystem();
+
+        this.saveCurrentState();
+        this.moveStartTime = Date.now();
+    }
+
+    private handlePostMoveChecks(): void {
+        if (this.isCheck(this.currentPlayer)) {
+            this.analytics.registerCheck();
+        }
+
+        if (this.isStalemate(this.currentPlayer)) {
+            this.terminateGame("ПАТ! Нічия.");
+        }
+
+        if (this.isCheckmate(this.currentPlayer)) {
+            const winner = this.currentPlayer === Color.White ? "Чорні" : "Білі";
+            this.terminateGame(`ШАХ І МАТ! Перемогли ${winner}! 🏆`);
+        }
+    }
+
+    private terminateGame(message: string): void {
+        this.isGameOver = true;
+        if (this.clock) this.clock.stop();
+        this.storage.clearSave();
+        alert(message);
+    }
+
+    private wouldLeaveKingInCheck(piece: Piece, startX: number, startY: number, endX: number, endY: number): boolean {
+        const targetPiece = this.board.cells[endY]![endX] ?? null;
 
         this.board.cells[endY]![endX] = piece;
         this.board.cells[startY]![startX] = null;
@@ -63,87 +111,36 @@ export class GameEngine {
         const isSelfCheck = this.isCheck(this.currentPlayer);
 
         this.board.cells[startY]![startX] = piece;
-        this.board.cells[endY]![endX] = targetPiece ?? null;
+        this.board.cells[endY]![endX] = targetPiece;
 
         if (originalX !== undefined && originalY !== undefined) {
             (piece as any).x = originalX;
             (piece as any).y = originalY;
         }
 
-        if (isSelfCheck) {
-            console.log("Неможливо зробити хід: ваш король залишиться під шахом!");
-            return false;
-        }
-
-        this.executeMove(startX, startY, endX, endY);
-        this.handleCastling(piece, startX, startY, endX, endY);
-        this.handlePawnPromotion(endX, endY, promotionChoice);
-
-        if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
-            this.board.cells[startY]![endX] = null;
-            console.log("Взяття на проході (En Passant)!");
-        }
-        this.board.lastMove = {
-            piece: piece,
-            startX: startX,
-            startY: startY,
-            endX: endX,
-            endY: endY
-        };
-
-        const isPromotion = piece.constructor.name === "Pawn" && (endY === 0 || endY === 7);
-        this.moveHistory.addMove(piece, startX, startY, endX, endY, targetPiece, isPromotion);
-
-        this.switchTurn();
-
-        const currentClockColor = this.currentPlayer.toLowerCase() as "white" | "black";
-        if (this.clock) {
-            this.clock.startOrSwitch(currentClockColor);
-        }
-
-        if (this.isStalemate(this.currentPlayer)) {
-            this.isGameOver = true;
-            if (this.clock) this.clock.stop();
-            alert("ПАТ! Нічия.");
-        }
-
-        // Перевірка на мат (якщо мат — зупиняємо годинник)
-        if (this.isCheckmate(this.currentPlayer)) {
-            this.isGameOver = true;
-            if (this.clock) this.clock.stop();
-            const winner = this.currentPlayer === Color.White ? "Чорні" : "Білі";
-            alert(`ШАХ І МАТ! Перемогли ${winner}! 🏆`);
-        }
-
-        return true;
+        return isSelfCheck;
     }
 
     private executeMove(startX: number, startY: number, endX: number, endY: number): void {
         this.board.movePiece(startX, startY, endX, endY);
-        console.log(`Фігуру переміщено з (${startX}, ${startY}) на (${endX}, ${endY})`);
     }
 
-    private handlePawnPromotion(x: number, y: number, promotionChoice: string) {
+    private handlePawnPromotion(x: number, y: number, promotionChoice: string): void {
         const piece = this.board.cells[y]![x];
-        if (!piece) return;
+        if (!piece || piece.constructor.name !== "Pawn") return;
 
-        // Приведення кольору до нижнього регістру про всяк випадок для сумісності з конструкторами фігур
-        if (piece.constructor.name === "Pawn") {
-            const pieceColorStr = piece.color.toLowerCase();
-            if ((pieceColorStr === "white" && y === 0) || (pieceColorStr === "black" && y === 7)) {
-
-                let newPiece;
-                switch (promotionChoice) {
-                    case "Rook": newPiece = new Rook({x, y}, piece.color); break;
-                    case "Bishop": newPiece = new Bishop({x, y}, piece.color); break;
-                    case "Knight": newPiece = new Knight({x, y}, piece.color); break;
-                    case "Queen":
-                    default:
-                        newPiece = new Queen({x, y}, piece.color); break;
-                }
-
-                this.board.cells[y]![x] = newPiece;
+        const pieceColorStr = piece.color.toLowerCase();
+        if ((pieceColorStr === "white" && y === 0) || (pieceColorStr === "black" && y === 7)) {
+            let newPiece;
+            switch (promotionChoice) {
+                case "Rook": newPiece = new Rook({ x, y }, piece.color); break;
+                case "Bishop": newPiece = new Bishop({ x, y }, piece.color); break;
+                case "Knight": newPiece = new Knight({ x, y }, piece.color); break;
+                case "Queen":
+                default:
+                    newPiece = new Queen({ x, y }, piece.color); break;
             }
+            this.board.cells[y]![x] = newPiece;
         }
     }
 
@@ -151,26 +148,111 @@ export class GameEngine {
         if (piece instanceof King && Math.abs(startX - endX) === 2) {
             if (endX === startX + 2) {
                 this.executeMove(7, startY, startX + 1, startY);
-                console.log("Коротка рокіровка!");
             }
             if (endX === startX - 2) {
                 this.executeMove(0, startY, startX - 1, startY);
-                console.log("Довга рокіровка!");
             }
+        }
+    }
+
+    private handleEnPassant(piece: Piece, startX: number, startY: number, endX: number, targetPiece: Piece | null): void {
+        if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
+            this.board.cells[startY]![endX] = null;
         }
     }
 
     public switchTurn(): void {
         this.currentPlayer = this.currentPlayer === Color.White ? Color.Black : Color.White;
-        console.log(`Хід передано. Тепер ходять: ${this.currentPlayer}`);
+    }
+
+    private updateClockSystem(): void {
+        if (this.clock) {
+            const currentClockColor = this.currentPlayer.toLowerCase() as "white" | "black";
+            this.clock.startOrSwitch(currentClockColor);
+        }
+    }
+
+    private trackAnalyticsData(piece: Piece): void {
+        const moveEndTime = Date.now();
+        const durationSeconds = parseFloat(((moveEndTime - this.moveStartTime) / 1000).toFixed(1));
+        this.analytics.registerMove(piece, durationSeconds);
+    }
+
+    private saveCurrentState(): void {
+        const boardMatrix = [];
+        for (let y = 0; y < 8; y++) {
+            const row = [];
+            for (let x = 0; x < 8; x++) {
+                const piece = this.board.cells[y]![x];
+                row.push(piece ? { type: piece.constructor.name, color: piece.color } : null);
+            }
+            boardMatrix.push(row);
+        }
+
+        this.storage.saveGame({
+            boardMatrix,
+            currentPlayer: this.currentPlayer,
+            capturedPiecesData: this.capturedPieces.map(p => ({ type: p.constructor.name, color: p.color })),
+            formattedHistory: this.moveHistory.getFormattedHistory()
+        });
+    }
+
+    public loadSavedGameIfPresent(): boolean {
+        if (!this.storage.hasSavedGame()) return false;
+        const savedState = this.storage.loadGame();
+        if (!savedState) return false;
+
+        try {
+            // Безпечно відновлюємо чергу ходу за допомогою Enum
+            this.currentPlayer = savedState.currentPlayer.toLowerCase() === "white" ? Color.White : Color.Black;
+
+            this.capturedPieces = savedState.capturedPiecesData.map(p => ({
+                color: p.color,
+                constructor: { name: p.type }
+            }));
+
+            // Безпечне відновлення історії ходів для відображення у списку
+            if (this.moveHistory && (this.moveHistory as any).moves !== undefined) {
+                (this.moveHistory as any).moves = [...savedState.formattedHistory];
+            }
+
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    const cellData = savedState.boardMatrix[y]![x];
+                    if (cellData) {
+                        // Визначаємо правильний об'єктний колір фігури на основі Enum
+                        const pColor = cellData.color.toLowerCase() === "white" ? Color.White : Color.Black;
+                        const pPos = { x, y };
+                        let newPiece;
+
+                        switch (cellData.type) {
+                            case "King": newPiece = new King(pPos, pColor); break;
+                            case "Queen": newPiece = new Queen(pPos, pColor); break;
+                            case "Rook": newPiece = new Rook(pPos, pColor); break;
+                            case "Bishop": newPiece = new Bishop(pPos, pColor); break;
+                            case "Knight": newPiece = new Knight(pPos, pColor); break;
+                            case "Pawn":
+                            default: newPiece = new Pawn(pPos, pColor); break;
+                        }
+                        this.board.cells[y]![x] = newPiece;
+                    } else {
+                        this.board.cells[y]![x] = null;
+                    }
+                }
+            }
+            return true;
+        } catch (e) {
+            this.storage.clearSave();
+            return false;
+        }
     }
 
     public isCheck(color: Color): boolean {
         let kingX = -1;
         let kingY = -1;
 
-        for (let i = 0; i < 8; i++){
-            for (let j = 0; j < 8; j++){
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
                 if (this.board.cells[j]![i] instanceof King && this.board.cells[j]![i]?.color === color) {
                     kingX = i;
                     kingY = j;
@@ -180,11 +262,11 @@ export class GameEngine {
 
         if (kingX === -1 || kingY === -1) return true;
 
-        for (let i = 0; i < 8; i++){
-            for (let j = 0; j < 8; j++){
-                if (this.board.cells[j]![i] instanceof Piece && this.board.cells[j]![i]?.color !== color) {
-                    const piece = this.board.cells[j]![i];
-                    if (piece?.canMove({x: i, y: j}, {x: kingX, y: kingY}, this.board)) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = this.board.cells[j]![i];
+                if (piece instanceof Piece && piece.color !== color) {
+                    if (piece.canMove({ x: i, y: j }, { x: kingX, y: kingY }, this.board)) {
                         return true;
                     }
                 }
@@ -194,97 +276,28 @@ export class GameEngine {
     }
 
     public isCheckmate(color: Color): boolean {
-        if (!this.isCheck(color)) {
-            return false;
-        }
-
-        for (let startX = 0; startX < 8; startX++) {
-            for (let startY = 0; startY < 8; startY++) {
-                const piece = this.board.cells[startY]![startX];
-
-                if (piece instanceof Piece && piece.color === color) {
-                    for (let endX = 0; endX < 8; endX++) {
-                        for (let endY = 0; endY < 8; endY++) {
-                            if (startX === endX && startY === endY) continue;
-
-                            if (piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
-                                const targetPiece = this.board.cells[endY]![endX] ?? null;
-
-                                if (targetPiece && targetPiece.color === color) continue;
-
-                                this.board.cells[endY]![endX] = piece;
-                                this.board.cells[startY]![startX] = null;
-
-                                const originalX = (piece as any).x;
-                                const originalY = (piece as any).y;
-                                if (originalX !== undefined && originalY !== undefined) {
-                                    (piece as any).x = endX;
-                                    (piece as any).y = endY;
-                                }
-
-                                const stillInCheck = this.isCheck(color);
-
-                                this.board.cells[startY]![startX] = piece;
-                                this.board.cells[endY]![endX] = targetPiece;
-
-                                if (originalX !== undefined && originalY !== undefined) {
-                                    (piece as any).x = originalX;
-                                    (piece as any).y = originalY;
-                                }
-
-                                if (!stillInCheck) {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
+        if (!this.isCheck(color)) return false;
+        return this.hasNoValidMoves(color);
     }
 
     public isStalemate(color: Color): boolean {
-        if (this.isCheck(color)) {
-            return false;
-        }
+        if (this.isCheck(color)) return false;
+        return this.hasNoValidMoves(color);
+    }
 
+    private hasNoValidMoves(color: Color): boolean {
         for (let startX = 0; startX < 8; startX++) {
             for (let startY = 0; startY < 8; startY++) {
                 const piece = this.board.cells[startY]![startX];
-
                 if (piece instanceof Piece && piece.color === color) {
                     for (let endX = 0; endX < 8; endX++) {
                         for (let endY = 0; endY < 8; endY++) {
                             if (startX === endX && startY === endY) continue;
-
-                            if (piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
+                            if (piece.canMove({ x: startX, y: startY }, { x: endX, y: endY }, this.board)) {
                                 const targetPiece = this.board.cells[endY]![endX] ?? null;
-
                                 if (targetPiece && targetPiece.color === color) continue;
 
-                                this.board.cells[endY]![endX] = piece;
-                                this.board.cells[startY]![startX] = null;
-
-                                const originalX = (piece as any).x;
-                                const originalY = (piece as any).y;
-                                if (originalX !== undefined && originalY !== undefined) {
-                                    (piece as any).x = endX;
-                                    (piece as any).y = endY;
-                                }
-
-                                const isSelfCheck = this.isCheck(color);
-
-                                this.board.cells[startY]![startX] = piece;
-                                this.board.cells[endY]![endX] = targetPiece;
-
-                                if (originalX !== undefined && originalY !== undefined) {
-                                    (piece as any).x = originalX;
-                                    (piece as any).y = originalY;
-                                }
-
-                                if (!isSelfCheck) {
+                                if (!this.wouldLeaveKingInCheck(piece, startX, startY, endX, endY)) {
                                     return false;
                                 }
                             }
@@ -293,47 +306,22 @@ export class GameEngine {
                 }
             }
         }
-
         return true;
     }
 
-    public getValidMoves(startX: number, startY: number): {x: number, y: number}[] {
-        const validMoves: {x: number, y: number}[] = [];
+    public getValidMoves(startX: number, startY: number): { x: number, y: number }[] {
+        const validMoves: { x: number, y: number }[] = [];
         const piece = this.board.getPiece(startX, startY);
 
-        if (!piece || piece.color !== this.currentPlayer) {
-            return validMoves;
-        }
+        if (!piece || piece.color !== this.currentPlayer) return validMoves;
 
         for (let endX = 0; endX < 8; endX++) {
             for (let endY = 0; endY < 8; endY++) {
                 if (startX === endX && startY === endY) continue;
 
-                if (piece.canMove({x: startX, y: startY}, {x: endX, y: endY}, this.board)) {
-
-                    const targetPiece = this.board.cells[endY]![endX] ?? null;
-                    this.board.cells[endY]![endX] = piece;
-                    this.board.cells[startY]![startX] = null;
-
-                    const originalX = (piece as any).x;
-                    const originalY = (piece as any).y;
-                    if (originalX !== undefined && originalY !== undefined) {
-                        (piece as any).x = endX;
-                        (piece as any).y = endY;
-                    }
-
-                    const isSelfCheck = this.isCheck(this.currentPlayer);
-
-                    this.board.cells[startY]![startX] = piece;
-                    this.board.cells[endY]![endX] = targetPiece;
-
-                    if (originalX !== undefined && originalY !== undefined) {
-                        (piece as any).x = originalX;
-                        (piece as any).y = originalY;
-                    }
-
-                    if (!isSelfCheck) {
-                        validMoves.push({x: endX, y: endY});
+                if (piece.canMove({ x: startX, y: startY }, { x: endX, y: endY }, this.board)) {
+                    if (!this.wouldLeaveKingInCheck(piece, startX, startY, endX, endY)) {
+                        validMoves.push({ x: endX, y: endY });
                     }
                 }
             }
@@ -342,18 +330,17 @@ export class GameEngine {
     }
 
     public restart(): void {
-
         this.isGameOver = false;
         this.currentPlayer = Color.White;
         this.capturedPieces = [];
-
         this.moveHistory.clear();
         this.board.resetBoard();
+        this.analytics.reset();
+        this.storage.clearSave();
+        this.moveStartTime = Date.now();
 
         if (this.clock) {
             this.clock.reset(5);
         }
-
-        console.log("Гру успішно перезапущено");
     }
 }
