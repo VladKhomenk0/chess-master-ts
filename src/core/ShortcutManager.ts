@@ -1,4 +1,5 @@
 import { NotificationManager, NotifyType } from "../ui/NotificationManager.js";
+import {ScoreManager} from "./ScoreManager.js";
 
 export class ShortcutManager {
     private static isInitialized = false;
@@ -47,6 +48,10 @@ export class ShortcutManager {
                 case "а": // Кирилиця
                     const fsBtn = document.getElementById("fullscreen-btn") as HTMLButtonElement;
                     if (fsBtn) fsBtn.click();
+                    break;
+                case "delete":
+                case "backspace":
+                    ScoreManager.resetScore();
                     break;
             }
         });

@@ -8,11 +8,13 @@ import { SoundManager } from "./core/SoundManager.js";
 import { ExportManager } from "./core/ExportManager.js";
 import { ShortcutManager } from "./core/ShortcutManager.js";
 import { FullscreenManager } from "./ui/FullscreenManager.js";
+import { ScoreManager } from "./core/ScoreManager.js";
 
 
 const themeManager = ThemeManager.getInstance();
 themeManager.init();
 ShortcutManager.init();
+ScoreManager.updateUI();
 
 const notificationService = NotificationManager.getInstance();
 
