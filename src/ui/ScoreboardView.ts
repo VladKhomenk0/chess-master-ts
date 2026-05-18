@@ -128,13 +128,11 @@ export class ScoreboardView {
         if (!this.restartBtn) return;
 
         this.restartBtn.addEventListener("click", () => {
-            this.game.clock.stop(); // 👇 ДОДАНО: зупиняємо таймери при рестарті
-            if (typeof (this.game as any).restart === "function") {
-                (this.game as any).restart();
-                window.location.reload();
-            } else {
-                window.location.reload();
-            }
+            this.game.restart();
+            this.update();
+
+            const event = new CustomEvent("game-restarted");
+            document.dispatchEvent(event);
         });
     }
 }

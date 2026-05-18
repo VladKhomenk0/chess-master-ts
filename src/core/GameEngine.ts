@@ -340,4 +340,20 @@ export class GameEngine {
         }
         return validMoves;
     }
+
+    public restart(): void {
+
+        this.isGameOver = false;
+        this.currentPlayer = Color.White;
+        this.capturedPieces = [];
+
+        this.moveHistory.clear();
+        this.board.resetBoard();
+
+        if (this.clock) {
+            this.clock.reset(5);
+        }
+
+        console.log("Гру успішно перезапущено");
+    }
 }
