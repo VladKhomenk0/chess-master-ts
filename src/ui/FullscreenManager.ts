@@ -1,4 +1,3 @@
-// src/ui/FullscreenManager.ts
 import { NotificationManager, NotifyType } from "./NotificationManager.js";
 
 export class FullscreenManager {

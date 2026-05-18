@@ -4,6 +4,7 @@ import type { Piece } from "../Piece.js";
 import { Color } from "../types.js";
 
 export class PawnMoveStrategy implements MoveStrategy {
+
     canMove(startX: number, startY: number, endX: number, endY: number, board: Board, piece: Piece): boolean {
         const direction = piece.color === Color.White ? -1 : 1;
 

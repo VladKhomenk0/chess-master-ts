@@ -2,6 +2,7 @@ import type {MoveStrategy} from "./MoveStrategy.js";
 import {Board} from "../Board.js";
 
 export class RookMoveStrategy implements MoveStrategy{
+
     canMove(startX: number, startY: number, endX: number, endY: number, board: Board): boolean {
         const dx = endX - startX;
         const dy = endY - startY;

@@ -31,7 +31,7 @@ export class ScoreManager {
         this.updateUI();
 
         const notifications = NotificationManager.getInstance();
-        notifications.show(`Рахунок серії оновлено! 🏆`, NotifyType.Success, 3000);
+        notifications.show(`Рахунок серії оновлено!`, NotifyType.Success, 3000);
     }
 
     /**
@@ -54,16 +54,16 @@ export class ScoreManager {
         if (!container) return;
 
         const diff = score.white - score.black;
-        let statusText = "Йде рівна боротьба ⚖️";
+        let statusText = "Йде рівна боротьба";
 
         if (diff >= 3) {
-            statusText = "Білі абсолютно домінують! 🔥";
+            statusText = "Білі абсолютно домінують!";
         } else if (diff > 0) {
-            statusText = "Білі вириваються вперед! 📈";
+            statusText = "Білі вириваються вперед!";
         } else if (diff <= -3) {
-            statusText = "Чорні розносять суперника! 🔥";
+            statusText = "Чорні розносять суперника!";
         } else if (diff < 0) {
-            statusText = "Чорні захопили лідерство! 📈";
+            statusText = "Чорні захопили лідерство!";
         }
 
         container.innerHTML = `

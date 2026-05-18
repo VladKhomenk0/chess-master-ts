@@ -23,8 +23,6 @@ export class BoardView {
         this.render();
         this.initEventListeners();
 
-        // Видалили initSoundButtonListener() звідси, бо він є в index.ts!
-
         document.addEventListener("game-restarted", () => {
             this.render();
         });
