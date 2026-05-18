@@ -4,6 +4,7 @@ import type { Piece } from "../Piece.js";
 import { Rook } from "../Rook.js";
 
 export class KingMoveStrategy implements MoveStrategy {
+
     canMove(startX: number, startY: number, endX: number, endY: number, board: Board, piece: Piece): boolean {
         const dx = Math.abs(endX - startX);
         const dy = Math.abs(endY - startY);
