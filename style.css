@@ -258,3 +258,27 @@ cell.possible-move::after {
     box-shadow: 0 0 10px rgba(241, 179, 81, 0.4);
     background-color: rgba(241, 179, 81, 0.1);
 }
+
+/* Блок аналітики */
+.analytics-section {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 15px;
+}
+
+.analytics-box {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #ccc;
+}
+
+.stat-val {
+    float: right;
+    font-weight: bold;
+    color: #f1b351;
+}
