@@ -14,6 +14,7 @@ import { GameAnalytics } from "./GameAnalytics.js";
 import { GameStorage } from "./GameStorage.js";
 import { SoundManager, ChessSound } from "./SoundManager.js";
 import { NotificationManager, NotifyType } from "../ui/NotificationManager.js";
+import { ScoreManager } from "./ScoreManager.js";
 
 export class GameEngine {
     public board: Board;
@@ -107,7 +108,13 @@ export class GameEngine {
 
         if (this.isCheckmate(this.currentPlayer)) {
             SoundManager.getInstance().play(ChessSound.GameEnd); // Звук кінця гри
+
             const winner = this.currentPlayer === Color.White ? "Чорні" : "Білі";
+
+            // 👇 ДОДАНО: АВТОМАТИЧНИЙ ЗАПИС ПЕРЕМОЖЦЯ В LOCALSTORAGE 👇
+            const winnerKey = this.currentPlayer === Color.White ? "black" : "white";
+            ScoreManager.recordWin(winnerKey);
+
             this.terminateGame(`ШАХ І МАТ! Перемогли ${winner}! 🏆`);
         }
     }

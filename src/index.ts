@@ -25,6 +25,7 @@ const wasLoaded = game.loadSavedGameIfPresent();
 
 const boardView = new BoardView(game, () => {
     scoreboardView.update();
+
 });
 
 if (wasLoaded) {

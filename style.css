@@ -4,7 +4,7 @@
 body {
     background-color: var(--bg-main, #f0f0f0);
     transition: background-color 0.4s ease;
-    font-family: sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -19,7 +19,7 @@ body {
 }
 
 /* ==========================================================================
-   ШАХОВА ДОШКА ТА КЛІТИНКИ
+   ШАХОВА ДОШКА ТА КЛІТИНКИ (Сумарна висота: 570px)
    ========================================================================== */
 #board {
     display: grid;
@@ -28,7 +28,7 @@ body {
     border: 5px solid #333;
     width: fit-content;
     margin: 0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .cell {
@@ -38,16 +38,11 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.25s ease;
 }
 
-.cell.white {
-    background-color: var(--board-light, #eeeed2);
-}
-
-.cell.black {
-    background-color: var(--board-dark, #769656);
-}
+.cell.white { background-color: var(--board-light, #eeeed2); }
+.cell.black { background-color: var(--board-dark, #769656); }
 
 .cell img {
     width: 85%;
@@ -56,7 +51,6 @@ body {
     pointer-events: none;
 }
 
-/* СТАН КЛІТИНКИ ТА ПІДКАЗКИ */
 .cell.selected {
     background-color: var(--cell-highlight, rgba(144, 238, 144, 0.8));
     box-sizing: border-box;
@@ -92,16 +86,16 @@ body {
 }
 
 /* ==========================================================================
-   ІЗОЛЬОВАНА ПАНЕЛЬ ІНФОРМАЦІЇ (SCOREBOARD)
+   ІЗОЛЬОВАНА ПАНЕЛЬ ІНФОРМАЦІЇ (Ідеально підігнана під 570px)
    ========================================================================== */
 .scoreboard {
-    width: 270px;
-    height: 550px; /* Фіксована висота тютелька в тютельку під дошку */
-    background-color: var(--scoreboard-bg, #312e2b);
+    width: 290px;
+    height: 570px; /* Рівно під лінійку висоти дошки з рамкою */
+    background-color: var(--scoreboard-bg, #262522);
     border-radius: 8px;
-    padding: 15px;
+    padding: 12px 15px;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     transition: background-color 0.4s ease;
 
     display: flex;
@@ -110,151 +104,180 @@ body {
     box-sizing: border-box;
 }
 
-/* Заголовки */
+/* Текстові елементи */
 .scoreboard h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
+    margin: 0;
+    font-size: 16px;
 }
 
 .scoreboard h4 {
-    margin: 0 0 5px 0;
-    font-size: 12px;
-    color: #aaa;
+    margin: 0 0 4px 0;
+    font-size: 11px;
+    color: #989795;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Годинник */
+/* Годинники */
 .clock-section {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 
 .timer-box {
     flex: 1;
-    background-color: rgba(0, 0, 0, 0.3);
-    border: 2px solid #555;
-    border-radius: 6px;
-    padding: 6px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 1px solid #403e3b;
+    border-radius: 5px;
+    padding: 4px;
     text-align: center;
-    transition: all 0.3s ease;
 }
 
 .timer-label {
     display: block;
-    font-size: 10px;
-    color: #aaa;
+    font-size: 9px;
+    color: #989795;
     text-transform: uppercase;
-    margin-bottom: 2px;
 }
 
 .timer-digits {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 20px;
+    font-family: monospace;
+    font-size: 18px;
     font-weight: bold;
-    color: #fff;
 }
 
 .timer-active {
     border-color: #f1b351;
-    box-shadow: 0 0 8px rgba(241, 179, 81, 0.4);
-    background-color: rgba(241, 179, 81, 0.1);
+    background-color: rgba(241, 179, 81, 0.08);
 }
 
-/* Гравці та Фігури */
-.turn-white { color: #fff; font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
+.turn-white { color: #fff; font-weight: bold; }
 .turn-black { color: #bababa; font-weight: bold; }
 
+/* Збиті фігури */
 .captured-box {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    min-height: 35px;
-    max-height: 35px;
-    background-color: rgba(0, 0, 0, 0.2);
+    gap: 3px;
+    min-height: 28px;
+    max-height: 28px;
+    background-color: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
-    padding: 4px;
+    padding: 3px;
     overflow-y: auto;
 }
 
 .captured-box img {
-    width: 22px;
-    height: 22px;
-    opacity: 0.7;
+    width: 20px;
+    height: 20px;
+    opacity: 0.75;
 }
 
-/* Елементи Налаштувань */
-.theme-section, .history-section {
-    margin-top: 2px;
-}
-
-.theme-dropdown {
-    width: 100%;
-    padding: 6px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border: 1px solid #555;
-    border-radius: 4px;
-    color: white;
-    outline: none;
-    cursor: pointer;
-    font-size: 13px;
-}
-
+/* Лог ходів */
 .moves-log {
-    height: 65px; /* Затиснутий лог ходів зі скролом */
+    height: 52px;
     overflow-y: auto;
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    padding: 6px;
+    padding: 5px;
     font-family: monospace;
-    font-size: 13px;
+    font-size: 12px;
     color: #f1b351;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
 }
 
-/* Кнопки керування */
+/* Стиль випадаючого списку */
+.theme-dropdown {
+    width: 100%;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #403e3b;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* СІТКА КНОПОК КЕРУВАННЯ 2х2 */
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 4px 0;
+}
+
 .restart-button {
     width: 100%;
-    padding: 8px;
-    background-color: #769656;
+    padding: 7px 4px;
     border: none;
     border-radius: 4px;
     color: white;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.2s;
-    margin-top: 4px;
+    transition: background-color 0.2s;
+    text-align: center;
 }
 
-.restart-button:hover {
-    background-color: var(--btn-hover, #647f49);
-}
+/* Тематичні кольори кнопок для стильного UX */
+.button-green { background-color: #769656; }
+.button-green:hover { background-color: #647f49; }
 
-/* Статистика аналітики */
+.button-grey { background-color: #454340; }
+.button-grey:hover { background-color: #555350; }
+
+.button-blue { background-color: #2196f3; }
+.button-blue:hover { background-color: #1976d2; }
+
+.button-slate { background-color: #607d8b; }
+.button-slate:hover { background-color: #4f6b75; }
+
+/* Блок аналітики та рекорду */
 .analytics-section {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 5px;
 }
 
 .analytics-box {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 11px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    color: #ccc;
+    gap: 2px;
+    color: #bbb;
 }
 
 .stat-val {
     float: right;
     font-weight: bold;
     color: #f1b351;
+}
+
+/* Картка глобальних рекордів серії */
+.lifetime-score {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed #403e3b;
+    font-size: 12px;
+    color: #e0e0e0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Тонкі кастомні скролбари для елементів інфо-панелі */
+.moves-log::-webkit-scrollbar,
+.captured-box::-webkit-scrollbar {
+    width: 4px;
+}
+.moves-log::-webkit-scrollbar-thumb,
+.captured-box::-webkit-scrollbar-thumb {
+    background: #403e3b;
+    border-radius: 2px;
 }
 
 /* ==========================================================================
@@ -270,9 +293,7 @@ body {
     z-index: 1000;
 }
 
-.modal.hidden {
-    display: none;
-}
+.modal.hidden { display: none; }
 
 .modal-content {
     background-color: #fff;
@@ -282,16 +303,8 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-.modal-content h3 {
-    margin-top: 0;
-    color: #333;
-}
-
-.promotion-pieces {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
+.modal-content h3 { margin-top: 0; color: #333; }
+.promotion-pieces { display: flex; gap: 15px; justify-content: center; }
 
 .promotion-pieces img {
     width: 60px;
