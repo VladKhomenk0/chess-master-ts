@@ -1,3 +1,4 @@
+// src/ui/BoardView.ts
 import { Board } from "../models/Board.js";
 import { type GameEngine } from "../core/GameEngine.js";
 import { Color } from "../models/types.js";
@@ -8,7 +9,6 @@ export class BoardView {
     private container: HTMLElement;
     private selectedCell: { x: number; y: number } | null = null;
 
-    // Колбек для сповіщення інших частин програми (наприклад, Scoreboard) про успішний хід
     private onMoveSuccess?: (() => void) | undefined;
 
     constructor(game: GameEngine, onMoveSuccess?: () => void) {
@@ -23,14 +23,13 @@ export class BoardView {
         this.render();
         this.initEventListeners();
 
+        // Видалили initSoundButtonListener() звідси, бо він є в index.ts!
+
         document.addEventListener("game-restarted", () => {
             this.render();
         });
     }
 
-    /**
-     * Повне перемальовування шахової дошки
-     */
     public render() {
         this.container.innerHTML = "";
 
@@ -41,18 +40,15 @@ export class BoardView {
                 cellElement.setAttribute("data-y", y.toString());
                 cellElement.classList.add("cell");
 
-                // Колір клітинки (шаховий порядок)
                 const isBlack = (x + y) % 2 === 1;
                 cellElement.classList.add(isBlack ? "black" : "white");
 
                 const piece = this.board.cells[y]![x];
                 if (piece) {
-                    // Рендер картинки фігури
                     const img = document.createElement("img");
                     img.src = `/assets/images/${piece.color.toLowerCase()}-${piece.constructor.name.toLowerCase()}.png`;
                     cellElement.appendChild(img);
 
-                    // Підсвічування короля, якщо йому шах
                     if (piece.constructor.name === "King" && piece.color === this.game.currentPlayer) {
                         if (this.game.isCheck(this.game.currentPlayer)) {
                             cellElement.classList.add("in-check");
@@ -64,17 +60,11 @@ export class BoardView {
         }
     }
 
-    /**
-     * Очищення підказок можливих ходів
-     */
     private clearMoveHints() {
         const hints = this.container.querySelectorAll('.possible-move, .possible-capture');
         hints.forEach(hint => hint.classList.remove('possible-move', 'possible-capture'));
     }
 
-    /**
-     * Відображення крапок та рамок для доступних ходів
-     */
     private showMoveHints(startX: number, startY: number) {
         const validMoves = this.game.getValidMoves(startX, startY);
 
@@ -83,14 +73,10 @@ export class BoardView {
             if (!cellElement) continue;
 
             const targetPiece = this.board.cells[move.y]![move.x];
-            // Якщо на клітинці ворог — малюємо рамку атаки, якщо порожньо — крапку
             cellElement.classList.add(targetPiece ? 'possible-capture' : 'possible-move');
         }
     }
 
-    /**
-     * Ініціалізація кліків по дошці
-     */
     initEventListeners() {
         this.container.addEventListener("click", async (event) => {
             const target = event.target as HTMLElement;
@@ -101,9 +87,7 @@ export class BoardView {
             const y = Number(cell.getAttribute("data-y"));
             const clickedPiece = this.board.cells[y]![x];
 
-            // --- РЕЖИМ 1: ФІГУРА ВЖЕ ОБРАНА ---
             if (this.selectedCell) {
-                // Клік на ту саму фігуру -> скасування виділення
                 if (this.selectedCell.x === x && this.selectedCell.y === y) {
                     this.resetSelection();
                     return;
@@ -111,13 +95,11 @@ export class BoardView {
 
                 const pieceInHand = this.board.cells[this.selectedCell.y]![this.selectedCell.x];
 
-                // Клік на іншу свою фігуру -> перемикання виділення на неї
                 if (clickedPiece && pieceInHand && clickedPiece.color === pieceInHand.color) {
                     this.changeSelection(cell, x, y);
                     return;
                 }
 
-                // Перевірка на перетворення пішака перед ходом
                 let promotionChoice = "Queen";
                 if (pieceInHand && pieceInHand.constructor.name === "Pawn") {
                     const isWhitePromotion = pieceInHand.color === "white" && y === 0;
@@ -128,17 +110,14 @@ export class BoardView {
                     }
                 }
 
-                // Спроба зробити хід у рушії гри
                 const moveSuccessful = this.game.processMove(this.selectedCell.x, this.selectedCell.y, x, y, promotionChoice);
 
                 if (moveSuccessful) {
                     this.selectedCell = null;
                     this.render();
 
-                    // Виклик оновлення Scoreboard через колбек
                     if (this.onMoveSuccess) this.onMoveSuccess();
 
-                    // Перевірка кінця гри (Шах і мат)
                     setTimeout(() => {
                         if (this.game.isCheckmate && this.game.isCheckmate(this.game.currentPlayer)) {
                             const winner = this.game.currentPlayer === Color.White ? "Чорні" : "Білі";
@@ -150,7 +129,6 @@ export class BoardView {
                     this.resetSelection();
                 }
 
-                // --- РЕЖИМ 2: ПЕРШИЙ КЛІК (ВИБІР ФІГУРИ) ---
             } else {
                 if (clickedPiece && clickedPiece.color === this.game.currentPlayer) {
                     this.changeSelection(cell, x, y);
@@ -159,9 +137,6 @@ export class BoardView {
         });
     }
 
-    /**
-     * Допоміжний метод: Скидання виділення з клітинки
-     */
     private resetSelection() {
         this.selectedCell = null;
         const previouslySelected = this.container.querySelector('.cell.selected');
@@ -169,9 +144,6 @@ export class BoardView {
         this.clearMoveHints();
     }
 
-    /**
-     * Допоміжний метод: Перемикання виділення на нову клітинку
-     */
     private changeSelection(cell: HTMLElement, x: number, y: number) {
         const previouslySelected = this.container.querySelector('.cell.selected');
         if (previouslySelected) previouslySelected.classList.remove('selected');
@@ -183,9 +155,6 @@ export class BoardView {
         this.showMoveHints(x, y);
     }
 
-    /**
-     * Показ модального вікна для вибору фігури при перетворенні пішака
-     */
     private async askPromotionPiece(color: string): Promise<string> {
         return new Promise((resolve) => {
             const modal = document.getElementById("promotion-modal");
@@ -212,6 +181,4 @@ export class BoardView {
             modal.classList.remove("hidden");
         });
     }
-
-
 }

@@ -1,3 +1,4 @@
+// src/core/GameEngine.ts
 import { Board } from "../models/Board.js";
 import { Color } from "../models/types.js";
 import { King } from "../models/King.js";
@@ -11,6 +12,8 @@ import { MoveHistory } from "./MoveHistory.js";
 import { ChessClock } from "./ChessClock.js";
 import { GameAnalytics } from "./GameAnalytics.js";
 import { GameStorage } from "./GameStorage.js";
+import { SoundManager, ChessSound } from "./SoundManager.js";
+import { NotificationManager, NotifyType } from "../ui/NotificationManager.js";
 
 export class GameEngine {
     public board: Board;
@@ -51,8 +54,16 @@ export class GameEngine {
 
     private executeMoveLifecycle(piece: Piece, startX: number, startY: number, endX: number, endY: number, promotionChoice: string): void {
         const targetPiece = this.board.cells[endY]![endX] ?? null;
+        let isCaptureAction = false;
+
         if (targetPiece) {
             this.capturedPieces.push(targetPiece);
+            isCaptureAction = true;
+        }
+
+        // Перевірка на взяття на проході (En Passant), бо targetPiece там спочатку null
+        if (piece.constructor.name === "Pawn" && startX !== endX && targetPiece === null) {
+            isCaptureAction = true;
         }
 
         this.executeMove(startX, startY, endX, endY);
@@ -69,6 +80,17 @@ export class GameEngine {
         this.switchTurn();
         this.updateClockSystem();
 
+        // ІНТЕЛЕКТУАЛЬНЕ СИСТЕМНЕ ВІДТВОРЕННЯ ЗВУКУ
+        const soundService = SoundManager.getInstance();
+        if (this.isCheck(this.currentPlayer)) {
+            // Якщо після зміни черги ходу поточний гравець під шахом
+            soundService.play(ChessSound.Check);
+        } else if (isCaptureAction) {
+            soundService.play(ChessSound.Capture);
+        } else {
+            soundService.play(ChessSound.Move);
+        }
+
         this.saveCurrentState();
         this.moveStartTime = Date.now();
     }
@@ -79,10 +101,12 @@ export class GameEngine {
         }
 
         if (this.isStalemate(this.currentPlayer)) {
+            SoundManager.getInstance().play(ChessSound.GameEnd); // Звук кінця гри
             this.terminateGame("ПАТ! Нічия.");
         }
 
         if (this.isCheckmate(this.currentPlayer)) {
+            SoundManager.getInstance().play(ChessSound.GameEnd); // Звук кінця гри
             const winner = this.currentPlayer === Color.White ? "Чорні" : "Білі";
             this.terminateGame(`ШАХ І МАТ! Перемогли ${winner}! 🏆`);
         }
@@ -92,7 +116,8 @@ export class GameEngine {
         this.isGameOver = true;
         if (this.clock) this.clock.stop();
         this.storage.clearSave();
-        alert(message);
+
+        NotificationManager.getInstance().show(message, NotifyType.Danger, 7000);
     }
 
     private wouldLeaveKingInCheck(piece: Piece, startX: number, startY: number, endX: number, endY: number): boolean {
@@ -203,7 +228,6 @@ export class GameEngine {
         if (!savedState) return false;
 
         try {
-            // Безпечно відновлюємо чергу ходу за допомогою Enum
             this.currentPlayer = savedState.currentPlayer.toLowerCase() === "white" ? Color.White : Color.Black;
 
             this.capturedPieces = savedState.capturedPiecesData.map(p => ({
@@ -211,7 +235,6 @@ export class GameEngine {
                 constructor: { name: p.type }
             }));
 
-            // Безпечне відновлення історії ходів для відображення у списку
             if (this.moveHistory && (this.moveHistory as any).moves !== undefined) {
                 (this.moveHistory as any).moves = [...savedState.formattedHistory];
             }
@@ -220,7 +243,6 @@ export class GameEngine {
                 for (let x = 0; x < 8; x++) {
                     const cellData = savedState.boardMatrix[y]![x];
                     if (cellData) {
-                        // Визначаємо правильний об'єктний колір фігури на основі Enum
                         const pColor = cellData.color.toLowerCase() === "white" ? Color.White : Color.Black;
                         const pPos = { x, y };
                         let newPiece;
