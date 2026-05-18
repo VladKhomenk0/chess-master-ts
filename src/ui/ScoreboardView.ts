@@ -14,6 +14,11 @@ export class ScoreboardView {
     private timerWhiteBox: HTMLElement | null;
     private timerBlackBox: HTMLElement | null;
 
+    private statActivePiece: HTMLElement | null;
+    private statWhiteTime: HTMLElement | null;
+    private statBlackTime: HTMLElement | null;
+    private statChecks: HTMLElement | null;
+
     constructor(game: GameEngine) {
         this.game = game;
 
@@ -28,8 +33,13 @@ export class ScoreboardView {
         this.timerWhiteBox = document.getElementById("timer-white-box");
         this.timerBlackBox = document.getElementById("timer-black-box");
 
+        this.statActivePiece = document.getElementById("stat-active-piece");
+        this.statWhiteTime = document.getElementById("stat-white-time");
+        this.statBlackTime = document.getElementById("stat-black-time");
+        this.statChecks = document.getElementById("stat-checks");
+
         this.game.clock = new ChessClock(
-            5, // Кількість хвилин на партію (можна змінити на 10 або 3)
+            5,
             (whiteStr, blackStr) => this.handleClockTick(whiteStr, blackStr),
             (loser) => this.handleTimeOut(loser)
         );
@@ -43,6 +53,21 @@ export class ScoreboardView {
         this.updateCapturedPieces();
         this.updateMoveHistory();
         this.updateActiveTimerHighlight();
+        this.updateAnalytics();
+    }
+
+    private updateAnalytics() {
+        if (!this.game.analytics) return;
+
+        const totalMoves = (this.game as any).moveHistory?.moves?.length || 0;
+        const totalCaptured = this.game.capturedPieces?.length || 0;
+
+        const report = this.game.analytics.generateReport(totalMoves, totalCaptured);
+
+        if (this.statActivePiece) this.statActivePiece.textContent = report.mostActivePieceType;
+        if (this.statWhiteTime) this.statWhiteTime.textContent = `${report.whiteAverageTime}с`;
+        if (this.statBlackTime) this.statBlackTime.textContent = `${report.blackAverageTime}с`;
+        if (this.statChecks) this.statChecks.textContent = report.checksCount.toString();
     }
 
     private handleClockTick(whiteStr: string, blackStr: string) {
@@ -62,7 +87,8 @@ export class ScoreboardView {
         this.timerWhiteBox.classList.remove("timer-active");
         this.timerBlackBox.classList.remove("timer-active");
 
-        if (this.game.currentPlayer === "white") {
+        const currentTurnColor = this.game.currentPlayer.toLowerCase();
+        if (currentTurnColor === "white") {
             this.timerWhiteBox.classList.add("timer-active");
         } else {
             this.timerBlackBox.classList.add("timer-active");
@@ -72,7 +98,7 @@ export class ScoreboardView {
     private updatePlayerTurn() {
         if (!this.playerTurnElement) return;
 
-        const currentPlayer = this.game.currentPlayer;
+        const currentPlayer = this.game.currentPlayer.toLowerCase();
         this.playerTurnElement.textContent = currentPlayer === "white" ? "White" : "Black";
 
         if (currentPlayer === "white") {
@@ -90,7 +116,7 @@ export class ScoreboardView {
         this.capturedWhiteContainer.innerHTML = "";
         this.capturedBlackContainer.innerHTML = "";
 
-        const captured = (this.game as any).capturedPieces || [];
+        const captured = this.game.capturedPieces || [];
 
         captured.forEach((piece: any) => {
             const img = document.createElement("img");
@@ -109,7 +135,7 @@ export class ScoreboardView {
         if (!this.movesLogContainer) return;
         this.movesLogContainer.innerHTML = "";
 
-        const moveHistoryObj = (this.game as any).moveHistory;
+        const moveHistoryObj = this.game.moveHistory;
         if (!moveHistoryObj || typeof moveHistoryObj.getFormattedHistory !== "function") return;
 
         const historyStrings = moveHistoryObj.getFormattedHistory();
