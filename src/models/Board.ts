@@ -95,4 +95,12 @@ export class Board{
         return this.cells[y]![x] ?? null;
     }
 
+    public resetBoard(): void {
+        this.cells = Array(8).fill(null).map(() => Array(8).fill(null));
+
+        this.initBoard();
+
+        this.lastMove = null;
+    }
+
 }

@@ -22,6 +22,10 @@ export class BoardView {
 
         this.render();
         this.initEventListeners();
+
+        document.addEventListener("game-restarted", () => {
+            this.render();
+        });
     }
 
     /**
@@ -208,4 +212,6 @@ export class BoardView {
             modal.classList.remove("hidden");
         });
     }
+
+
 }
