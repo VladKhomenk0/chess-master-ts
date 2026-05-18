@@ -218,3 +218,43 @@ cell.possible-move::after {
     flex-direction: column;
     gap: 4px;
 }
+
+/* Секція годинника */
+.clock-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.timer-box {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid #555;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.timer-label {
+    display: block;
+    font-size: 12px;
+    color: #aaa;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+
+.timer-digits {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Клас для активного таймера гравця, який зараз думає */
+.timer-active {
+    border-color: #f1b351;
+    box-shadow: 0 0 10px rgba(241, 179, 81, 0.4);
+    background-color: rgba(241, 179, 81, 0.1);
+}

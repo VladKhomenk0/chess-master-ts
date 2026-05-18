@@ -11,6 +11,18 @@
         <div id="board"></div>
 
         <div id="scoreboard" class="scoreboard">
+
+            <div class="clock-section">
+                <div class="timer-box" id="timer-white-box">
+                    <span class="timer-label">White:</span>
+                    <span id="timer-white" class="timer-digits">05:00</span>
+                </div>
+                <div class="timer-box" id="timer-black-box">
+                    <span class="timer-label">Black:</span>
+                    <span id="timer-black" class="timer-digits">05:00</span>
+                </div>
+            </div>
+
             <div class="status-section">
                 <h3>Хід: <span id="current-player-turn" class="turn-white">White</span></h3>
             </div>
@@ -20,11 +32,13 @@
                 <div id="captured-white" class="captured-box"></div>
                 <div id="captured-black" class="captured-box"></div>
             </div>
+
             <div class="history-section">
                 <h4>Історія ходів:</h4>
                 <div id="moves-log" class="moves-log">
                 </div>
             </div>
+
             <button id="restart-btn" class="restart-button">Почати заново</button>
         </div>
     </div>

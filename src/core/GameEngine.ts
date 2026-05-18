@@ -8,19 +8,20 @@ import {Rook} from "../models/Rook.js";
 import {Bishop} from "../models/Bishop.js";
 import {Knight} from "../models/Knight.js";
 import { MoveHistory } from "./MoveHistory.js";
+import { ChessClock } from "./ChessClock.js";
 
 export class GameEngine {
     public board: Board;
     public currentPlayer: Color;
     public isGameOver: boolean = false;
     public capturedPieces: any[] = [];
+    public clock!: ChessClock;
+    public moveHistory: MoveHistory = new MoveHistory();
 
     constructor(board: Board) {
         this.board = board;
         this.currentPlayer = Color.White;
     }
-
-    public moveHistory: MoveHistory = new MoveHistory();
 
     public processMove(startX: number, startY: number, endX: number, endY: number, promotionChoice: string = "Queen"): boolean {
         if (this.isGameOver) {
@@ -95,9 +96,23 @@ export class GameEngine {
 
         this.switchTurn();
 
+        const currentClockColor = this.currentPlayer.toLowerCase() as "white" | "black";
+        if (this.clock) {
+            this.clock.startOrSwitch(currentClockColor);
+        }
+
         if (this.isStalemate(this.currentPlayer)) {
             this.isGameOver = true;
+            if (this.clock) this.clock.stop();
             alert("ПАТ! Нічия.");
+        }
+
+        // Перевірка на мат (якщо мат — зупиняємо годинник)
+        if (this.isCheckmate(this.currentPlayer)) {
+            this.isGameOver = true;
+            if (this.clock) this.clock.stop();
+            const winner = this.currentPlayer === Color.White ? "Чорні" : "Білі";
+            alert(`ШАХ І МАТ! Перемогли ${winner}! 🏆`);
         }
 
         return true;
@@ -112,8 +127,10 @@ export class GameEngine {
         const piece = this.board.cells[y]![x];
         if (!piece) return;
 
+        // Приведення кольору до нижнього регістру про всяк випадок для сумісності з конструкторами фігур
         if (piece.constructor.name === "Pawn") {
-            if ((piece.color === "white" && y === 0) || (piece.color === "black" && y === 7)) {
+            const pieceColorStr = piece.color.toLowerCase();
+            if ((pieceColorStr === "white" && y === 0) || (pieceColorStr === "black" && y === 7)) {
 
                 let newPiece;
                 switch (promotionChoice) {
@@ -132,12 +149,10 @@ export class GameEngine {
 
     private handleCastling(piece: Piece, startX: number, startY: number, endX: number, endY: number): void {
         if (piece instanceof King && Math.abs(startX - endX) === 2) {
-
             if (endX === startX + 2) {
                 this.executeMove(7, startY, startX + 1, startY);
                 console.log("Коротка рокіровка!");
             }
-
             if (endX === startX - 2) {
                 this.executeMove(0, startY, startX - 1, startY);
                 console.log("Довга рокіровка!");
